@@ -25,6 +25,8 @@ class ThemeManager {
 // Navigation Management
 class NavigationManager {
     constructor() {
+        this.navToggle = document.getElementById('navToggle'); // Button für mobiles Menü
+        this.navMenu = document.getElementById('navMenu'); // Das Menü selbst
         this.pages = document.querySelectorAll('.page');
         this.navLinks = document.querySelectorAll('.nav__link'); // Nur für die "active" Klasse
 
@@ -45,8 +47,17 @@ class NavigationManager {
                 this.showPage(pageId);
             });
         });
-
+        if (this.navToggle) {
+            this.navToggle.addEventListener('click', () => this.toggleMobileMenu());
+        }
         this.showPage('startseite');
+    }
+
+    toggleMobileMenu() {
+        if (this.navToggle && this.navMenu) {
+            this.navToggle.classList.toggle('active');
+            this.navMenu.classList.toggle('active');
+        }
     }
 
     showPage(pageId) {
@@ -187,7 +198,7 @@ class ChessPuzzleManager {
             position: this.game.fen(),
             orientation: orientation,
             // KORREKTUR: Pfad zu den Schachfiguren-Bildern hinzugefügt
-            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png',
+            pieceTheme: 'chesspieces/wikipedia/{piece}.png',
             onDrop: (source, target) => {
                 const move = this.game.move({ from: source, to: target, promotion: 'q' });
                 if (move === null) return 'snapback';

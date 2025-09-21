@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 :root {
-  /* ... Farbvariablen bleiben unverändert ... */
   --color-dark-bg: #0d1117;
   --color-surface: #161b22;
   --color-border: #30363d;
@@ -41,10 +40,9 @@ body[data-color-scheme="light"] {
   --border: var(--color-light-border);
   --text: var(--color-light-text-primary);
   --text-sec: var(--color-light-text-secondary);
-  .animated-background { opacity: 0.3; }
 }
 
-/* ... Base Styles, Animated Background etc. bleiben unverändert ... */
+/* Base Styles, Animated Background etc. */
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -91,12 +89,8 @@ body::before {
   border-bottom-color: var(--color-accent-primary);
 }
 
-/* --- AKTIONSKNÖPFE IM HEADER (MODIFIZIERT) --- */
-.nav__actions {
-  display: flex;
-  align-items: center;
-  gap: 16px; /* Abstand zwischen den Knöpfen */
-}
+/* AKTIONSKNÖPFE IM HEADER */
+.nav__actions { display: flex; align-items: center; gap: 16px; }
 .nav__action-btn {
   display: flex; align-items: center; justify-content: center;
   width: 48px; height: 48px;
@@ -123,7 +117,7 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
   transition: all var(--duration-normal) var(--ease-standard);
 }
 
-/* ... Main Content, Hero, Buttons etc. bleiben unverändert ... */
+/* Main Content, Hero, Buttons etc. */
 .page { display: none; padding: var(--space-32) 0; }
 .page--active { display: block; animation: fadeIn 0.5s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -140,7 +134,7 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .btn--lg { padding: 14px 32px; }
 .btn--full-width { width: 100%; }
 
-/* --- FORMULAR (MODIFIZIERT) --- */
+/* FORMULAR */
 .form-container, .impressum, .content-box {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: var(--space-32);
@@ -150,198 +144,96 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .form-label { display: block; margin-bottom: 8px; font-weight: 600; }
 .form-control { width: 100%; padding: 12px; border-radius: var(--radius-base); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; }
 .form-control:focus { outline: none; border-color: var(--color-accent-secondary); box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3); }
-
-/* NEU: Stile für das Formular-Feedback */
 #form-feedback {
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: var(--radius-base);
-  text-align: center;
-  font-weight: 600;
-  display: none; /* Standardmäßig unsichtbar */
+  margin-top: 24px; padding: 16px; border-radius: var(--radius-base);
+  text-align: center; font-weight: 600; display: none;
 }
-#form-feedback.success {
-  background-color: rgba(76, 201, 240, 0.2); /* Cyan */
-  color: var(--color-accent-secondary);
-}
-#form-feedback.error {
-  background-color: rgba(247, 37, 133, 0.2); /* Magenta */
-  color: var(--color-accent-primary);
-}
+#form-feedback.success { background-color: rgba(76, 201, 240, 0.2); color: var(--color-accent-secondary); }
+#form-feedback.error { background-color: rgba(247, 37, 133, 0.2); color: var(--color-accent-primary); }
 
-/* ... Impressum, Content-Box, Footer bleiben unverändert ... */
-.impressum h1 { text-align: center; margin-bottom: var(--space-32); font-size: 2.5rem; background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* Impressum, Content-Box */
+.impressum h1, .legal-content h1 { text-align: center; margin-bottom: var(--space-32); font-size: 2.5rem; background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .impressum h3 { color: var(--color-accent-primary); margin-bottom: var(--space-16); }
-.impressum__section { margin-bottom: var(--space-24); }
-.impressum p { color: var(--text-sec); line-height: 1.6; }
+.impressum p, .legal-content p, .legal-content li { color: var(--text-sec); line-height: 1.6; }
 .content-box { max-width: 720px; }
 .content-box__text { color: var(--text-sec); line-height: 1.7; font-size: 1.1rem; }
 
-/* Ergänzung für die style.css */
-
-/* --- FOOTER (MODIFIZIERT) --- */
-.footer {
-  text-align: center;
-  padding: var(--space-24);
-  border-top: 1px solid var(--border);
-  color: var(--text-sec);
-}
+/* FOOTER */
+.footer { text-align: center; padding: var(--space-24); border-top: 1px solid var(--border); color: var(--text-sec); }
 .footer p { margin: 0; }
+.footer__links { margin-bottom: 16px; }
+.footer__links a { color: var(--text-sec); text-decoration: none; margin: 0 10px; font-weight: 600; transition: color 0.3s ease; }
+.footer__links a:hover { color: var(--color-accent-primary); }
+.footer__links span { color: var(--border); }
+.footer__copyright { font-size: 0.9rem; }
 
-.footer__links {
-  margin-bottom: 16px;
+/* Links in Inhaltsboxen */
+.content-box a, .impressum a, .legal-content a {
+  color: var(--color-accent-secondary); font-weight: 600; text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color 0.3s ease;
 }
-.footer__links a {
-  color: var(--text-sec);
-  text-decoration: none;
-  margin: 0 10px;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-.footer__links a:hover {
-  color: var(--color-accent-primary);
-}
-.footer__links span {
-  color: var(--border);
-}
-.footer__copyright {
-  font-size: 0.9rem;
-}
+.content-box a:hover, .impressum a:hover, .legal-content a:hover { color: var(--color-accent-primary); }
 
-/* --- RESPONSIVE DESIGN --- */
-@media (max-width: 768px) {
-  .nav__menu { display: none; }
-  .nav__toggle { display: flex; }
-  .hero__actions { flex-direction: column; align-items: center; }
-  .btn { width: 100%; max-width: 300px; }
-}
+/* RECHTSTEXTE */
+.legal-content { max-width: 800px; margin: 32px auto; text-align: left; }
+.legal-content h2 { font-size: 1.8rem; color: var(--color-accent-primary); margin-top: var(--space-32); margin-bottom: var(--space-16); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.legal-content h3 { font-size: 1.4rem; color: var(--text); margin-top: var(--space-24); margin-bottom: var(--space-16); }
+.legal-content h4 { font-size: 1.1rem; color: var(--text); margin-top: var(--space-24); margin-bottom: var(--space-16); }
 
-/* Ergänzung für die style.css */
-
-/* --- Links in Inhaltsboxen (z.B. Datenschutz, Impressum) --- */
-.content-box a,
-.impressum a {
-  color: var(--color-accent-secondary); /* Leuchtendes Cyan, passend zum Design */
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  transition: color 0.3s ease;
-}
-
-.content-box a:hover,
-.impressum a:hover {
-  color: var(--color-accent-primary); /* Magenta beim Darüberfahren, für Konsistenz */
-}
-
-
-/* --- NEUE DESIGN-KLASSE FÜR RECHTSTEXTE (Impressum, Datenschutz) --- */
-.legal-content {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-32);
-  max-width: 800px;
-  margin: 32px auto;
-  text-align: left;
-}
-
-.legal-content h1 {
-  text-align: center;
-  margin-bottom: var(--space-32);
-  font-size: 2.5rem;
-  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.legal-content h2 {
-  font-size: 1.8rem;
-  color: var(--color-accent-primary);
-  margin-top: var(--space-32);
-  margin-bottom: var(--space-16);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-}
-
-.legal-content h3 {
-  font-size: 1.4rem;
-  color: var(--text);
-  margin-top: var(--space-24);
-  margin-bottom: var(--space-16);
-}
-
-.legal-content h4 {
-  font-size: 1.1rem;
-  color: var(--text);
-  margin-top: var(--space-24);
-  margin-bottom: var(--space-16);
-}
-
-.legal-content p, .legal-content li {
-  color: var(--text-sec);
-  line-height: 1.7;
-}
-
-.legal-content a {
-  color: var(--color-accent-secondary);
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  transition: color 0.3s ease;
-}
-
-.legal-content a:hover {
-  color: var(--color-accent-primary);
-}
-
-.puzzle-controls {
-  text-align: center;
-  margin-bottom: 32px;
-}
-.difficulty-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 8px;
-  margin-bottom: 24px;
-}
-.difficulty-buttons .btn.active {
-  background: var(--color-accent-primary);
-  border-color: var(--color-accent-primary);
-  color: white;
-}
-.puzzle-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 32px;
-  flex-wrap: wrap;
-}
-.chessboard {
-  width: 100%;
-  max-width: 400px; /* Größe des Schachbretts */
-}
-.puzzle-info {
-  padding: 16px;
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  min-width: 250px;
-  text-align: center;
-}
-.puzzle-status {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
+/* SCHACHRÄTSEL */
+.puzzle-controls { text-align: center; margin-bottom: 32px; }
+.difficulty-buttons { display: flex; justify-content: center; gap: 16px; margin-top: 8px; margin-bottom: 24px; }
+.puzzle-container { display: flex; justify-content: center; align-items: flex-start; gap: 32px; flex-wrap: wrap; }
+.chessboard { width: 100%; max-width: 400px; }
+.puzzle-info { padding: 16px; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); min-width: 250px; text-align: center; }
+.puzzle-status { font-size: 1.2rem; font-weight: 600; margin-bottom: 16px; }
 .puzzle-status.correct { color: #28a745; }
 .puzzle-status.incorrect { color: #dc3545; }
 
-/* Stil für aktive/ausgewählte Schwierigkeits-Buttons */
-.difficulty-buttons .btn.active, #dailyPuzzleBtn.active {
-  background: var(--color-primary);
-  color: var(--color-btn-primary-text);
-  border-color: var(--color-primary);
+/* --- RESPONSIVE DESIGN & MOBIL-MENÜ KORREKTUREN --- */
+@media (max-width: 768px) {
+  .nav__menu {
+    display: flex;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 80px);
+    background: var(--surface);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-32);
+    transform: translateX(-100%);
+    transition: transform var(--duration-normal) var(--ease-standard);
+    z-index: 999;
+  }
+
+  .nav__menu.active {
+    transform: translateX(0);
+  }
+
+  .nav__toggle {
+    display: flex;
+    z-index: 1000;
+  }
+
+  .nav__toggle.active .nav__toggle-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .nav__toggle.active .nav__toggle-line:nth-child(2) {
+    opacity: 0;
+  }
+  .nav__toggle.active .nav__toggle-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .hero__actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  .btn {
+    width: 100%;
+    max-width: 300px;
+  }
 }
