@@ -338,3 +338,10 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 }
 .puzzle-status.correct { color: #28a745; }
 .puzzle-status.incorrect { color: #dc3545; }
+
+/* Stil für aktive/ausgewählte Schwierigkeits-Buttons */
+.difficulty-buttons .btn.active, #dailyPuzzleBtn.active {
+  background: var(--color-primary);
+  color: var(--color-btn-primary-text);
+  border-color: var(--color-primary);
+}

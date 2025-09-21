@@ -128,88 +128,68 @@ class InteractionManager {
 }
 
 
+// Chess Puzzle Management (FINALE KORREKTUR)
 class ChessPuzzleManager {
     constructor() {
         this.board = null;
         this.game = new Chess();
         this.puzzle = null;
         this.currentMove = 0;
-
-        // HTML-Elemente
-        this.boardElement = $('#puzzleBoard');
         this.statusElement = $('.puzzle-status');
         this.solutionBtn = $('#showSolutionBtn');
-        this.difficultyButtons = $('.difficulty-buttons .btn');
-        this.dailyPuzzleBtn = $('#dailyPuzzleBtn');
-
+        this.puzzleButtons = $('.difficulty-buttons .btn, #dailyPuzzleBtn');
         this.init();
     }
 
     init() {
-        this.dailyPuzzleBtn.on('click', () => this.loadDailyPuzzle());
         this.solutionBtn.on('click', () => this.showSolution());
-        this.difficultyButtons.on('click', (e) => {
-            const difficulty = $(e.currentTarget).data('difficulty');
-            this.loadPuzzleByDifficulty(difficulty);
+        this.puzzleButtons.on('click', (e) => {
+            e.preventDefault();
+            const clickedButton = $(e.currentTarget);
+            this.puzzleButtons.removeClass('btn--primary').addClass('btn--outline');
+            clickedButton.removeClass('btn--outline').addClass('btn--primary');
+            this.fetcher('https://lichess.org/api/puzzle/daily');
         });
-
-        // Initial das Rätsel des Tages laden
-        this.loadDailyPuzzle();
+        $('#dailyPuzzleBtn').click();
     }
 
     async fetcher(url) {
         this.statusElement.text('Lade neues Rätsel...');
         this.solutionBtn.hide();
+        if (this.board) {
+            this.board.destroy();
+        }
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Netzwerk-Problem');
+            if (!response.ok) throw new Error(`Netzwerk-Antwort war nicht OK`);
             const data = await response.json();
             this.setupPuzzle(data);
         } catch (error) {
-            this.statusElement.text('Fehler beim Laden des Rätsels.');
-            console.error(error);
+            this.statusElement.text('Fehler: Rätsel konnte nicht geladen werden.');
         }
     }
 
-    loadDailyPuzzle() {
-        this.difficultyButtons.removeClass('active');
-        this.dailyPuzzleBtn.addClass('active');
-        this.fetcher('https://lichess.org/api/puzzle/daily');
-    }
-
-    loadPuzzleByDifficulty(difficulty) {
-        this.dailyPuzzleBtn.removeClass('active');
-        this.difficultyButtons.removeClass('active');
-        $(`.difficulty-buttons .btn[data-difficulty=${difficulty}]`).addClass('active');
-
-        // Lichess-Bewertung für Schwierigkeitsstufen
-        const ratings = { easy: 1300, medium: 1600, hard: 2000 };
-        const rating = ratings[difficulty];
-        // Wir holen ein Rätsel in einem Bereich von +/- 100 Punkten der Zielbewertung
-        this.fetcher(`https://lichess.org/api/puzzle/rated?rating=${rating}&themes=mateIn2`);
-    }
-
     setupPuzzle(data) {
+        if (!data || !data.game || (!data.game.fen && !data.game.pgn)) {
+            this.statusElement.text('Fehler: Ungültige Rätsel-Daten erhalten.');
+            return;
+        }
+
+        data.game.fen ? this.game.load(data.game.fen) : this.game.load_pgn(data.game.pgn);
         this.puzzle = data;
         this.currentMove = 0;
 
-        const orientation = this.puzzle.game.player.toLowerCase();
-        this.game.load(this.puzzle.game.fen);
+        const turn = this.game.turn();
+        const orientation = (turn === 'w') ? 'white' : 'black';
 
         const config = {
             draggable: true,
             position: this.game.fen(),
-            orientation: orientation === 'white' ? 'white' : 'black',
-            onDragStart: (source, piece) => {
-                // Nur Züge für die richtige Farbe erlauben
-                return this.game.turn() === piece.charAt(0);
-            },
+            orientation: orientation,
+            // KORREKTUR: Pfad zu den Schachfiguren-Bildern hinzugefügt
+            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png',
             onDrop: (source, target) => {
-                const move = this.game.move({
-                    from: source,
-                    to: target,
-                    promotion: 'q' // Immer zur Dame umwandeln
-                });
+                const move = this.game.move({ from: source, to: target, promotion: 'q' });
                 if (move === null) return 'snapback';
                 this.checkSolution(move);
             }
@@ -217,32 +197,28 @@ class ChessPuzzleManager {
 
         this.board = Chessboard('puzzleBoard', config);
         this.statusElement.text(`${orientation === 'white' ? 'Weiß' : 'Schwarz'} am Zug.`);
-        this.statusElement.removeClass('correct incorrect');
         this.solutionBtn.show();
     }
 
     checkSolution(userMove) {
         const solution = this.puzzle.puzzle.solution;
         const expectedMove = solution[this.currentMove];
-
         if (`${userMove.from}${userMove.to}` === expectedMove) {
-            this.statusElement.text('Korrekt!').addClass('correct');
+            this.statusElement.text('Korrekt!');
             this.currentMove++;
-
-            // Computer macht den nächsten Zug
             setTimeout(() => {
                 if (this.currentMove < solution.length) {
                     this.game.move(solution[this.currentMove], { sloppy: true });
                     this.board.position(this.game.fen());
                     this.currentMove++;
-                    this.statusElement.text('Dein Zug.').removeClass('correct');
+                    this.statusElement.text('Dein Zug.');
                 } else {
-                    this.statusElement.text('Rätsel gelöst!').addClass('correct');
+                    this.statusElement.text('Rätsel gelöst!');
                     this.solutionBtn.hide();
                 }
             }, 500);
         } else {
-            this.statusElement.text('Falsch, versuche es erneut.').addClass('incorrect');
+            this.statusElement.text('Falsch, versuche es erneut.');
             setTimeout(() => {
                 this.game.undo();
                 this.board.position(this.game.fen());
@@ -251,9 +227,7 @@ class ChessPuzzleManager {
     }
 
     showSolution() {
-        this.statusElement.text('Lösung wird angezeigt...');
         let moveIndex = this.currentMove;
-
         const playNextMove = () => {
             if (moveIndex < this.puzzle.puzzle.solution.length) {
                 this.game.move(this.puzzle.puzzle.solution[moveIndex], { sloppy: true });
@@ -261,7 +235,7 @@ class ChessPuzzleManager {
                 moveIndex++;
                 setTimeout(playNextMove, 1000);
             } else {
-                this.statusElement.text('Rätsel gelöst!').addClass('correct');
+                this.statusElement.text('Rätsel gelöst!');
             }
         };
         playNextMove();
