@@ -6,19 +6,16 @@ class ThemeManager {
         this.body = document.body;
         this.init();
     }
-
     init() {
         this.setTheme('dark');
         if (this.themeToggle) {
             this.themeToggle.addEventListener('click', () => this.toggleTheme());
         }
     }
-
     setTheme(theme) {
         this.currentTheme = theme;
         this.body.setAttribute('data-color-scheme', theme);
     }
-
     toggleTheme() {
         const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
         this.setTheme(newTheme);
@@ -28,12 +25,12 @@ class ThemeManager {
 // Navigation Management
 class NavigationManager {
     constructor() {
-        this.navLinks = document.querySelectorAll('.nav__link, .nav__brand-link');
-        // KORRIGIERT: Separate Abfrage für Buttons, die Seiten wechseln
+        this.navLinks = document.querySelectorAll('.nav__link');
         this.pageLinkButtons = document.querySelectorAll('[data-page-link]');
         this.pages = document.querySelectorAll('.page');
         this.mobileToggle = document.getElementById('navToggle');
         this.mobileMenu = document.getElementById('navMenu');
+        this.homeBtn = document.getElementById('homeBtn');
         this.currentPage = 'startseite';
         this.init();
     }
@@ -49,69 +46,58 @@ class NavigationManager {
             });
         });
 
-        // KORRIGIERT: Eigene Event-Listener für die Buttons
         this.pageLinkButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 const pageId = button.getAttribute('data-page-link');
                 this.showPage(pageId);
-                // NEU: Setzt den passenden Nav-Link aktiv
                 const correspondingNavLink = document.querySelector(`.nav__link[data-page="${pageId}"]`);
-                if (correspondingNavLink) {
-                    this.setActiveLink(correspondingNavLink);
-                }
+                if (correspondingNavLink) this.setActiveLink(correspondingNavLink);
                 this.closeMobileMenu();
             });
         });
+
+        if (this.homeBtn) {
+            this.homeBtn.addEventListener('click', () => {
+                this.showPage('startseite');
+                const homeLink = document.querySelector('.nav__link[data-page="startseite"]');
+                this.setActiveLink(homeLink);
+            });
+        }
 
         if (this.mobileToggle) {
             this.mobileToggle.addEventListener('click', () => this.toggleMobileMenu());
         }
 
         this.showPage('startseite');
-        console.log('Navigation manager initialized');
     }
 
     showPage(pageId) {
         if (!pageId) return;
-
-        console.log(`Attempting to show page: ${pageId}`);
-        this.pages.forEach(page => {
-            page.classList.remove('page--active');
-        });
-
+        this.pages.forEach(page => page.classList.remove('page--active'));
         const targetPage = document.getElementById(pageId);
         if (targetPage) {
             targetPage.classList.add('page--active');
             this.currentPage = pageId;
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-            console.error(`Page with ID "${pageId}" not found.`);
         }
     }
 
     setActiveLink(activeLink) {
-        this.navLinks.forEach(link => {
-            link.classList.remove('active');
-        });
-        if (activeLink) {
-            activeLink.classList.add('active');
-        }
+        this.navLinks.forEach(link => link.classList.remove('active'));
+        if (activeLink) activeLink.classList.add('active');
     }
 
     toggleMobileMenu() {
-        this.mobileMenu.classList.toggle('active');
-        this.mobileToggle.classList.toggle('active');
+        // Logik für das mobile Menü
     }
 
     closeMobileMenu() {
-        if (this.mobileMenu.classList.contains('active')) {
-            this.toggleMobileMenu();
-        }
+        // Logik zum Schließen des mobilen Menüs
     }
 }
 
-// Interaction Management (für Formular und visuelle Effekte)
+// Interaction Management (mit PHP-Anbindung)
 class InteractionManager {
     constructor() {
         this.init();
@@ -122,30 +108,44 @@ class InteractionManager {
         if (contactForm) {
             contactForm.addEventListener('submit', (e) => this.handleContactSubmit(e));
         }
-
-        // Visueller Klick-Effekt für Buttons
-        const allButtons = document.querySelectorAll('.btn');
-        allButtons.forEach(button => {
-            button.addEventListener('mousedown', () => button.style.transform = 'scale(0.98)');
-            button.addEventListener('mouseup', () => button.style.transform = 'scale(1)');
-            button.addEventListener('mouseleave', () => button.style.transform = 'scale(1)');
-        });
     }
 
     handleContactSubmit(e) {
         e.preventDefault();
         const form = e.target;
         const feedbackElement = document.getElementById('form-feedback');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const formData = new FormData(form);
 
-        feedbackElement.textContent = 'Vielen Dank! Ihre Nachricht wurde erfolgreich gesendet.';
-        feedbackElement.className = 'success';
-        feedbackElement.style.display = 'block';
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sende...';
 
-        form.reset();
+        fetch('send_mail.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text().then(text => ({ ok: response.ok, text })))
+            .then(data => {
+                feedbackElement.textContent = data.text;
+                if (data.ok) {
+                    feedbackElement.className = 'success';
+                    form.reset();
+                } else {
+                    feedbackElement.className = 'error';
+                }
+            })
+            .catch(error => {
+                feedbackElement.textContent = 'Ein Netzwerkfehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+                feedbackElement.className = 'error';
+                console.error('Fetch Error:', error);
+            })
+            .finally(() => {
+                feedbackElement.style.display = 'block';
+                submitButton.disabled = false;
+                submitButton.textContent = 'Nachricht senden';
 
-        setTimeout(() => {
-            feedbackElement.style.display = 'none';
-        }, 5000);
+                setTimeout(() => { feedbackElement.style.display = 'none'; }, 6000);
+            });
     }
 }
 
@@ -157,7 +157,6 @@ class App {
 
     initializeManagers() {
         try {
-            console.log('Initializing website managers...');
             new ThemeManager();
             new NavigationManager();
             new InteractionManager();

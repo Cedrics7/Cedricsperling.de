@@ -2,25 +2,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 :root {
-  /* COLOR PALETTE: Deep Space Blue & Vibrant Magenta/Cyan */
+  /* ... Farbvariablen bleiben unverändert ... */
   --color-dark-bg: #0d1117;
   --color-surface: #161b22;
   --color-border: #30363d;
   --color-text-primary: #c9d1d9;
   --color-text-secondary: #8b949e;
-
   --color-accent-primary: #f72585;
   --color-accent-secondary: #4cc9f0;
   --color-accent-primary-rgb: 247, 37, 133;
-
-  /* Light Mode */
   --color-light-bg: #f8f9fa;
   --color-light-surface: #ffffff;
   --color-light-border: #dee2e6;
   --color-light-text-primary: #212529;
   --color-light-text-secondary: #6c757d;
-
-  /* Sizing & Font */
   --font-family: 'Poppins', sans-serif;
   --radius-base: 8px;
   --radius-lg: 12px;
@@ -49,7 +44,7 @@ body[data-color-scheme="light"] {
   .animated-background { opacity: 0.3; }
 }
 
-/* BASE STYLES */
+/* ... Base Styles, Animated Background etc. bleiben unverändert ... */
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -59,20 +54,12 @@ body {
   margin: 0;
   padding-top: 80px;
 }
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 var(--space-16);
-}
-
-/* ANIMATED BACKGROUND */
+.container { max-width: 960px; margin: 0 auto; padding: 0 var(--space-16); }
 .animated-background {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100vh;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
   z-index: -2; overflow: hidden;
   background: linear-gradient(45deg, #480ca8, #f72585, #4cc9f0, #4361ee);
-  background-size: 400% 400%;
-  animation: gradientMove 15s ease-in-out infinite;
+  background-size: 400% 400%; animation: gradientMove 15s ease-in-out infinite;
   transition: opacity 0.5s;
 }
 @keyframes gradientMove {
@@ -80,8 +67,7 @@ body {
   50% { background-position: 100% 50%; }
 }
 body::before {
-  content: ''; position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
+  content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: var(--bg); opacity: 0.8; z-index: -1;
   backdrop-filter: blur(5px);
 }
@@ -105,35 +91,31 @@ body::before {
   border-bottom-color: var(--color-accent-primary);
 }
 
-/* --- THEME TOGGLE (WIEDERHERGESTELLT) --- */
-.theme-toggle {
+/* --- AKTIONSKNÖPFE IM HEADER (MODIFIZIERT) --- */
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Abstand zwischen den Knöpfen */
+}
+.nav__action-btn {
   display: flex; align-items: center; justify-content: center;
   width: 48px; height: 48px;
-  border: none; border-radius: var(--radius-full);
-  background: var(--surface); cursor: pointer;
-  position: relative; overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius-full);
+  background: var(--surface); color: var(--text);
+  cursor: pointer; position: relative; overflow: hidden;
   transition: all var(--duration-normal) var(--ease-standard);
-  border: 1px solid var(--border);
 }
-.theme-toggle:hover { transform: scale(1.05); }
+.nav__action-btn:hover { transform: scale(1.05); }
 .theme-icon {
   position: absolute; font-size: 20px;
   transition: all var(--duration-normal) var(--ease-standard);
 }
 .theme-icon--sun { opacity: 0; transform: translateY(100%) scale(0.5); }
 .theme-icon--moon { opacity: 1; transform: translateY(0) scale(1); }
-
-body[data-color-scheme="light"] .theme-icon--sun {
-  opacity: 1; transform: translateY(0) scale(1);
-}
-body[data-color-scheme="light"] .theme-icon--moon {
-  opacity: 0; transform: translateY(-100%) scale(0.5);
-}
-
-/* --- MOBILE NAVIGATION TOGGLE (KORRIGIERT) --- */
+body[data-color-scheme="light"] .theme-icon--sun { opacity: 1; transform: translateY(0) scale(1); }
+body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: translateY(-100%) scale(0.5); }
 .nav__toggle {
-  display: none; /* Auf Desktop standardmäßig ausblenden */
-  flex-direction: column; background: none; border: none;
+  display: none; flex-direction: column; background: none; border: none;
   cursor: pointer; padding: var(--space-16); gap: 5px;
 }
 .nav__toggle-line {
@@ -141,48 +123,24 @@ body[data-color-scheme="light"] .theme-icon--moon {
   transition: all var(--duration-normal) var(--ease-standard);
 }
 
-/* MAIN CONTENT & PAGES */
+/* ... Main Content, Hero, Buttons etc. bleiben unverändert ... */
 .page { display: none; padding: var(--space-32) 0; }
 .page--active { display: block; animation: fadeIn 0.5s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .page__title { text-align: center; font-size: 2.5rem; margin-bottom: var(--space-32); }
-
-/* HERO SECTION */
-.hero {
-  text-align: center; padding: 60px 0; min-height: calc(80vh - 80px);
-  display: flex; flex-direction: column; justify-content: center;
-}
-.hero__title {
-  font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; margin: 0 0 var(--space-24) 0;
-  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.hero__text {
-  font-size: 1.25rem; color: var(--text-sec);
-  max-width: 600px; margin: 0 auto var(--space-32);
-}
+.hero { text-align: center; padding: 60px 0; min-height: calc(80vh - 80px); display: flex; flex-direction: column; justify-content: center; }
+.hero__title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; margin: 0 0 var(--space-24) 0; background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero__text { font-size: 1.25rem; color: var(--text-sec); max-width: 600px; margin: 0 auto var(--space-32); }
 .hero__actions { display: flex; gap: var(--space-16); justify-content: center; }
-
-/* BUTTONS */
-.btn {
-  padding: 12px 28px; border-radius: 50px; font-weight: 600;
-  cursor: pointer; transition: all 0.3s ease;
-  border: 2px solid; text-decoration: none;
-  display: inline-block; font-size: 1rem;
-}
-.btn--primary {
-  background: var(--color-accent-primary); border-color: var(--color-accent-primary);
-  color: white;
-}
+.btn { padding: 12px 28px; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: 2px solid; text-decoration: none; display: inline-block; font-size: 1rem; }
+.btn--primary { background: var(--color-accent-primary); border-color: var(--color-accent-primary); color: white; }
 .btn--primary:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(var(--color-accent-primary-rgb), 0.5); }
-.btn--outline {
-  background: transparent; border-color: var(--border); color: var(--text);
-}
+.btn--outline { background: transparent; border-color: var(--border); color: var(--text); }
 .btn--outline:hover { background: var(--surface); border-color: var(--text); }
 .btn--lg { padding: 14px 32px; }
 .btn--full-width { width: 100%; }
 
-/* FORM, IMPRESSUM & CONTENT-BOX */
+/* --- FORMULAR (MODIFIZIERT) --- */
 .form-container, .impressum, .content-box {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: var(--space-32);
@@ -190,49 +148,41 @@ body[data-color-scheme="light"] .theme-icon--moon {
 }
 .form-group { margin-bottom: var(--space-24); }
 .form-label { display: block; margin-bottom: 8px; font-weight: 600; }
-.form-control {
-  width: 100%; padding: 12px; border-radius: var(--radius-base);
-  border: 1px solid var(--border); background: var(--bg);
-  color: var(--text); font-size: 1rem;
+.form-control { width: 100%; padding: 12px; border-radius: var(--radius-base); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; }
+.form-control:focus { outline: none; border-color: var(--color-accent-secondary); box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3); }
+
+/* NEU: Stile für das Formular-Feedback */
+#form-feedback {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: var(--radius-base);
+  text-align: center;
+  font-weight: 600;
+  display: none; /* Standardmäßig unsichtbar */
 }
-.form-control:focus {
-  outline: none; border-color: var(--color-accent-secondary);
-  box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3);
+#form-feedback.success {
+  background-color: rgba(76, 201, 240, 0.2); /* Cyan */
+  color: var(--color-accent-secondary);
 }
-.impressum h1 {
-  text-align: center; margin-bottom: var(--space-32); font-size: 2.5rem;
-  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+#form-feedback.error {
+  background-color: rgba(247, 37, 133, 0.2); /* Magenta */
+  color: var(--color-accent-primary);
 }
+
+/* ... Impressum, Content-Box, Footer bleiben unverändert ... */
+.impressum h1 { text-align: center; margin-bottom: var(--space-32); font-size: 2.5rem; background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .impressum h3 { color: var(--color-accent-primary); margin-bottom: var(--space-16); }
 .impressum__section { margin-bottom: var(--space-24); }
 .impressum p { color: var(--text-sec); line-height: 1.6; }
-
 .content-box { max-width: 720px; }
 .content-box__text { color: var(--text-sec); line-height: 1.7; font-size: 1.1rem; }
-
-/* FOOTER */
-.footer {
-  text-align: center; padding: var(--space-24);
-  border-top: 1px solid var(--border); color: var(--text-sec);
-}
+.footer { text-align: center; padding: var(--space-24); border-top: 1px solid var(--border); color: var(--text-sec); }
 .footer p { margin: 0; }
 
 /* --- RESPONSIVE DESIGN --- */
 @media (max-width: 768px) {
-  .nav__menu { display: none; } /* Hauptmenü ausblenden */
-  .nav__toggle { display: flex; } /* Hamburger-Icon einblenden */
+  .nav__menu { display: none; }
+  .nav__toggle { display: flex; }
   .hero__actions { flex-direction: column; align-items: center; }
   .btn { width: 100%; max-width: 300px; }
-}
-
-/* Stil für den klickbaren Markennamen/Logo */
-.nav__brand-link {
-  text-decoration: none;
-  color: inherit;
-  transition: opacity 0.3s ease;
-}
-
-.nav__brand-link:hover {
-  opacity: 0.8;
 }

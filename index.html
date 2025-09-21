@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-color-scheme="dark">
-
 <div class="animated-background"></div>
 
 <header class="header">
@@ -20,19 +19,25 @@
             <li><a href="#" class="nav__link active" data-page="startseite">Startseite</a></li>
             <li><a href="#" class="nav__link" data-page="ueber-mich">Über mich</a></li>
             <li><a href="#" class="nav__link" data-page="kontakt">Kontakt</a></li>
-            <li><a href="#" class="nav__link" data-page="impressum">Impressum</a></li>
+            <li><a href="#" class="nav__link" data-page="datenschutz">Datenschutz</a></li>
         </ul>
 
-        <button class="theme-toggle" id="themeToggle" aria-label="Theme umschalten">
-            <span class="theme-icon theme-icon--sun">☀️</span>
-            <span class="theme-icon theme-icon--moon">🌙</span>
-        </button>
+        <div class="nav__actions">
+            <button class="nav__action-btn" id="homeBtn" aria-label="Zur Startseite">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </button>
 
-        <button class="nav__toggle" id="navToggle" aria-label="Menü öffnen">
-            <span class="nav__toggle-line"></span>
-            <span class="nav__toggle-line"></span>
-            <span class="nav__toggle-line"></span>
-        </button>
+            <button class="nav__action-btn theme-toggle" id="themeToggle" aria-label="Theme umschalten">
+                <span class="theme-icon theme-icon--sun">☀️</span>
+                <span class="theme-icon theme-icon--moon">🌙</span>
+            </button>
+
+            <button class="nav__toggle" id="navToggle" aria-label="Menü öffnen">
+                <span class="nav__toggle-line"></span>
+                <span class="nav__toggle-line"></span>
+                <span class="nav__toggle-line"></span>
+            </button>
+        </div>
     </nav>
 </header>
 
@@ -89,45 +94,66 @@
         <div class="container">
             <div class="impressum">
                 <h1>Impressum</h1>
-                <div class="impressum__content">
-
-                    <div class="impressum__section">
-                        <h3>Angaben gemäß § 5 TMG</h3>
-                        <p>
-                            Cedric Sperling<br>
-                            Hinter der Linah 41<br>
-                            21614 Buxtehude
-                        </p>
-                    </div>
-
-                    <div class="impressum__section">
-                        <h3>Kontakt</h3>
-                        <p>
-                            Telefon: [Ihre Telefonnummer]<br>
-                            E-Mail: [Ihre E-Mail-Adresse]
-                        </p>
-                    </div>
-
-                    <div class="impressum__section">
-                        <h3>Redaktionell verantwortlich</h3>
-                        <p>
-                            Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:<br>
-                            Cedric Sperling<br>
-                            Hinter der Linah 41<br>
-                            21614 Buxtehude
-                        </p>
-                    </div>
-                </div>
+                <h3>Angaben gemäß § 5 TMG</h3>
+                <p>
+                    Cedric Sperling<br>
+                    Hinter der Linah 41<br>
+                    21614 Buxtehude
+                </p>
+                <h3>Kontakt</h3>
+                <p>
+                    Telefon: [Ihre Telefonnummer]<br>
+                    E-Mail: [Ihre E-Mail-Adresse]
+                </p>
+                <h3>Redaktionell verantwortlich</h3>
+                <p>
+                    Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:<br>
+                    Cedric Sperling<br>
+                    Hinter der Linah 41<br>
+                    21614 Buxtehude
+                </p>
+                <h3>EU-Streitschlichtung</h3>
+                <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr/" target="_blank">https://ec.europa.eu/consumers/odr/</a>.<br>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
+                <h3>Verbraucher­streit­beilegung/Universal­schlichtungs­stelle</h3>
+                <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
             </div>
         </div>
     </section>
-</main>
 
-<footer class="footer">
-    <div class="container">
-        <p>&copy; 2025 Cedric Sperling. Alle Rechte vorbehalten.</p>
-    </div>
-</footer>
+    <section class="page" id="datenschutz">
+        <div class="container">
+            <div class="content-box" style="max-width: 800px; text-align: left;">
+                <h1 class="page__title">Datenschutzerklärung</h1>
+
+                <h2>1. Datenschutz auf einen Blick</h2>
+                <h3>Allgemeine Hinweise</h3>
+                <p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können. Ausführliche Informationen zum Thema Datenschutz entnehmen Sie unserer unter diesem Text aufgeführten Datenschutzerklärung.</p>
+                <h3>Datenerfassung auf dieser Website</h3>
+                <h4>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</h4>
+                <p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Impressum dieser Website entnehmen.</p>
+                <h4>Wie erfassen wir Ihre Daten?</h4>
+                <p>Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich z. B. um Daten handeln, die Sie in ein Kontaktformular eingeben. Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser Daten erfolgt automatisch, sobald Sie diese Website betreten.</p>
+                <h4>Wofür nutzen wir Ihre Daten?</h4>
+                <p>Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu gewährleisten.</p>
+                <h4>Welche Rechte haben Sie bezüglich Ihrer Daten?</h4>
+                <p>Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht, die Berichtigung oder Löschung dieser Daten zu verlangen. Wenn Sie eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie diese Einwilligung jederzeit für die Zukunft widerrufen. Ihnen steht ferner ein Beschwerderecht bei der zuständigen Aufsichtsbehörde zu.</p>
+
+                <h2>2. Hosting</h2>
+                <p>Wir hosten unsere Website bei einem externen Dienstleister. Die personenbezogenen Daten, die auf dieser Website erfasst werden, werden auf den Servern des Hosters gespeichert. Hierbei kann es sich v. a. um IP-Adressen, Kontaktanfragen, Meta- und Kommunikationsdaten, Vertragsdaten, Kontaktdaten, Namen, Websitezugriffe und sonstige Daten, die über eine Website generiert werden, handeln...</p>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>
+                <a href="#" data-page="impressum">Impressum</a> |
+                <a href="#" data-page="datenschutz">Datenschutz</a>
+            </p>
+            <p style="margin-top: 8px;">&copy; 2025 Cedric Sperling. Alle Rechte vorbehalten.</p>
+        </div>
+    </footer>
 
 <script src="app.js"></script>
 </body>
