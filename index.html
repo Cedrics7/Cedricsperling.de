@@ -3,126 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meine Website</title>
+    <title>Cedric Sperling - Portfolio</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-color-scheme="dark">
-    <!-- Animated Background -->
-    <div class="animated-background"></div>
-    
-    <!-- Header & Navigation -->
-    <header class="header">
-        <nav class="nav container">
-            <div class="nav__brand">
-                <h2>Meine Website</h2>
-            </div>
-            
-            <!-- Desktop Navigation -->
-            <ul class="nav__menu" id="navMenu">
-                <li><a href="#" class="nav__link active" data-page="startseite">Startseite</a></li>
-                <li><a href="#" class="nav__link" data-page="impressum">Impressum</a></li>
-            </ul>
-            
-            <!-- Theme Toggle -->
-            <button class="theme-toggle" id="themeToggle" aria-label="Theme umschalten">
-                <span class="theme-icon theme-icon--sun">☀️</span>
-                <span class="theme-icon theme-icon--moon">🌙</span>
-            </button>
-            
-            <!-- Mobile Menu Toggle -->
-            <button class="nav__toggle" id="navToggle" aria-label="Menü öffnen">
-                <span class="nav__toggle-line"></span>
-                <span class="nav__toggle-line"></span>
-                <span class="nav__toggle-line"></span>
-            </button>
-        </nav>
-    </header>
 
-    <!-- Main Content -->
-    <main class="main">
-        <!-- Startseite -->
-        <section class="page page--active" id="startseite">
-            <div class="container">
-                <div class="hero">
-                    <h1 class="hero__title">Willkommen auf meiner Website</h1>
-                    <p class="hero__text">Entdecken Sie eine moderne, responsive Website mit wunderschönem animiertem Hintergrund.</p>
-                    <div class="hero__actions">
-                        <button class="btn btn--primary btn--lg">Mehr erfahren</button>
-                        <button class="btn btn--outline btn--lg">Kontakt</button>
-                    </div>
-                </div>
-                
-                <div class="features">
-                    <div class="feature-card">
-                        <h3>Responsive Design</h3>
-                        <p>Perfekt angepasst für alle Geräte - von Desktop bis Mobile.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Dark & Light Mode</h3>
-                        <p>Wählen Sie zwischen hellem und dunklem Theme nach Ihren Vorlieben.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Moderne Technologie</h3>
-                        <p>Gebaut mit den neuesten Web-Standards für optimale Performance.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+<div class="animated-background"></div>
 
-        <!-- Impressum -->
-        <section class="page" id="impressum">
-            <div class="container">
-                <div class="impressum">
-                    <h1>Impressum</h1>
-                    <div class="impressum__content">
-                        <div class="impressum__section">
-                            <h3>Angaben gemäß § 5 TMG</h3>
-                            <p>
-                                Mustermann GmbH<br>
-                                Max Mustermann<br>
-                                Musterstraße 123<br>
-                                12345 Musterstadt
-                            </p>
-                        </div>
-                        
-                        <div class="impressum__section">
-                            <h3>Kontakt</h3>
-                            <p>
-                                Telefon: +49 123 456789<br>
-                                E-Mail: info@example.com
-                            </p>
-                        </div>
-                        
-                        <div class="impressum__section">
-                            <h3>Vertreten durch</h3>
-                            <p>
-                                Vertretungsberechtigter Geschäftsführer: Max Mustermann<br>
-                                Registergericht: Amtsgericht Musterstadt<br>
-                                Registernummer: HRB 12345
-                            </p>
-                        </div>
-                        
-                        <div class="impressum__section">
-                            <h3>Haftungsausschluss</h3>
-                            <h4>Haftung für Inhalte</h4>
-                            <p>Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht unter der Verpflichtung, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
-                            
-                            <h4>Haftung für Links</h4>
-                            <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Meine Website. Alle Rechte vorbehalten.</p>
+<header class="header">
+    <nav class="nav container">
+        <div class="nav__brand">
+            <h2>Cedric Sperling</h2>
         </div>
-    </footer>
 
-    <script src="app.js"></script>
+        <ul class="nav__menu" id="navMenu">
+            <li><a href="#" class="nav__link active" data-page="startseite">Startseite</a></li>
+            <li><a href="#" class="nav__link" data-page="ueber-mich">Über mich</a></li>
+            <li><a href="#" class="nav__link" data-page="kontakt">Kontakt</a></li>
+            <li><a href="#" class="nav__link" data-page="impressum">Impressum</a></li>
+        </ul>
+
+        <button class="theme-toggle" id="themeToggle" aria-label="Theme umschalten">
+            <span class="theme-icon theme-icon--sun">☀️</span>
+            <span class="theme-icon theme-icon--moon">🌙</span>
+        </button>
+
+        <button class="nav__toggle" id="navToggle" aria-label="Menü öffnen">
+            <span class="nav__toggle-line"></span>
+            <span class="nav__toggle-line"></span>
+            <span class="nav__toggle-line"></span>
+        </button>
+    </nav>
+</header>
+
+<main class="main">
+    <section class="page page--active" id="startseite">
+        <div class="hero">
+            <h1 class="hero__title">Willkommen auf meiner Website</h1>
+            <p class="hero__text">Entdecken Sie eine moderne, responsive Website mit dynamischem Hintergrund und klarem Fokus auf Design.</p>
+            <div class="hero__actions">
+                <button class="btn btn--primary btn--lg" data-page-link="kontakt">Kontakt aufnehmen</button>
+                <button class="btn btn--outline btn--lg" data-page-link="ueber-mich">Mehr erfahren</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="page" id="ueber-mich">
+        <div class="container">
+            <div class="content-box">
+                <h2 class="page__title">Über mich</h2>
+                <p class="content-box__text">
+                    Hallo, mein Name ist Cedric Sperling. Ich bin ein leidenschaftlicher Webentwickler mit einem Auge für Ästhetik und einer Vorliebe für sauberen, effizienten Code.
+                    <br><br>
+                    Auf dieser Seite präsentiere ich meine Fähigkeiten in der Erstellung moderner und benutzerfreundlicher Web-Erlebnisse. Mein Ziel ist es, Technologie und Design zu verbinden, um funktionale und gleichzeitig ansprechende Websites zu schaffen.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="page" id="kontakt">
+        <div class="container">
+            <div class="form-container">
+                <h2 class="page__title">Kontakt aufnehmen</h2>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="form-label">E-Mail</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message" class="form-label">Nachricht</label>
+                        <textarea id="message" name="message" rows="5" class="form-control" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">Nachricht senden</button>
+                </form>
+                <div id="form-feedback"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="page" id="impressum">
+        <div class="container">
+            <div class="impressum">
+                <h1>Impressum</h1>
+                <div class="impressum__content">
+
+                    <div class="impressum__section">
+                        <h3>Angaben gemäß § 5 TMG</h3>
+                        <p>
+                            Cedric Sperling<br>
+                            Hinter der Linah 41<br>
+                            21614 Buxtehude
+                        </p>
+                    </div>
+
+                    <div class="impressum__section">
+                        <h3>Kontakt</h3>
+                        <p>
+                            Telefon: [Ihre Telefonnummer]<br>
+                            E-Mail: [Ihre E-Mail-Adresse]
+                        </p>
+                    </div>
+
+                    <div class="impressum__section">
+                        <h3>Redaktionell verantwortlich</h3>
+                        <p>
+                            Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:<br>
+                            Cedric Sperling<br>
+                            Hinter der Linah 41<br>
+                            21614 Buxtehude
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2025 Cedric Sperling. Alle Rechte vorbehalten.</p>
+    </div>
+</footer>
+
+<script src="app.js"></script>
 </body>
 </html>
+
