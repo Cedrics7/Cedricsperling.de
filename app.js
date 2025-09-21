@@ -25,55 +25,33 @@ class ThemeManager {
 // Navigation Management
 class NavigationManager {
     constructor() {
-        this.navLinks = document.querySelectorAll('.nav__link');
-        this.pageLinkButtons = document.querySelectorAll('[data-page-link]');
         this.pages = document.querySelectorAll('.page');
-        this.mobileToggle = document.getElementById('navToggle');
-        this.mobileMenu = document.getElementById('navMenu');
-        this.homeBtn = document.getElementById('homeBtn');
+        this.navLinks = document.querySelectorAll('.nav__link'); // Nur für die "active" Klasse
+
+        // Ein zentraler Selektor für alle Navigationselemente (Header-Links, Footer-Links, Buttons, Home-Button)
+        this.navigationTriggers = document.querySelectorAll('[data-page], [data-page-link], #homeBtn');
+
         this.currentPage = 'startseite';
         this.init();
     }
 
     init() {
-        this.navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
+        // Eine Schleife für alle Links (Header, Footer, Buttons)
+        this.navigationTriggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
                 e.preventDefault();
-                const pageId = link.getAttribute('data-page');
+                // Der Home-Button hat kein data-page Attribut, daher wird hier 'startseite' fest zugewiesen
+                const pageId = trigger.getAttribute('data-page') || trigger.getAttribute('data-page-link') || 'startseite';
                 this.showPage(pageId);
-                this.setActiveLink(link);
-                this.closeMobileMenu();
             });
         });
-
-        this.pageLinkButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                const pageId = button.getAttribute('data-page-link');
-                this.showPage(pageId);
-                const correspondingNavLink = document.querySelector(`.nav__link[data-page="${pageId}"]`);
-                if (correspondingNavLink) this.setActiveLink(correspondingNavLink);
-                this.closeMobileMenu();
-            });
-        });
-
-        if (this.homeBtn) {
-            this.homeBtn.addEventListener('click', () => {
-                this.showPage('startseite');
-                const homeLink = document.querySelector('.nav__link[data-page="startseite"]');
-                this.setActiveLink(homeLink);
-            });
-        }
-
-        if (this.mobileToggle) {
-            this.mobileToggle.addEventListener('click', () => this.toggleMobileMenu());
-        }
 
         this.showPage('startseite');
     }
 
     showPage(pageId) {
         if (!pageId) return;
+
         this.pages.forEach(page => page.classList.remove('page--active'));
         const targetPage = document.getElementById(pageId);
         if (targetPage) {
@@ -81,19 +59,19 @@ class NavigationManager {
             this.currentPage = pageId;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Sorge dafür, dass der richtige Link in der Hauptnavigation aktiv ist
+        this.updateActiveNavLink();
     }
 
-    setActiveLink(activeLink) {
-        this.navLinks.forEach(link => link.classList.remove('active'));
-        if (activeLink) activeLink.classList.add('active');
-    }
-
-    toggleMobileMenu() {
-        // Logik für das mobile Menü
-    }
-
-    closeMobileMenu() {
-        // Logik zum Schließen des mobilen Menüs
+    updateActiveNavLink() {
+        this.navLinks.forEach(link => {
+            if (link.getAttribute('data-page') === this.currentPage) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
     }
 }
 
@@ -149,6 +127,148 @@ class InteractionManager {
     }
 }
 
+
+class ChessPuzzleManager {
+    constructor() {
+        this.board = null;
+        this.game = new Chess();
+        this.puzzle = null;
+        this.currentMove = 0;
+
+        // HTML-Elemente
+        this.boardElement = $('#puzzleBoard');
+        this.statusElement = $('.puzzle-status');
+        this.solutionBtn = $('#showSolutionBtn');
+        this.difficultyButtons = $('.difficulty-buttons .btn');
+        this.dailyPuzzleBtn = $('#dailyPuzzleBtn');
+
+        this.init();
+    }
+
+    init() {
+        this.dailyPuzzleBtn.on('click', () => this.loadDailyPuzzle());
+        this.solutionBtn.on('click', () => this.showSolution());
+        this.difficultyButtons.on('click', (e) => {
+            const difficulty = $(e.currentTarget).data('difficulty');
+            this.loadPuzzleByDifficulty(difficulty);
+        });
+
+        // Initial das Rätsel des Tages laden
+        this.loadDailyPuzzle();
+    }
+
+    async fetcher(url) {
+        this.statusElement.text('Lade neues Rätsel...');
+        this.solutionBtn.hide();
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Netzwerk-Problem');
+            const data = await response.json();
+            this.setupPuzzle(data);
+        } catch (error) {
+            this.statusElement.text('Fehler beim Laden des Rätsels.');
+            console.error(error);
+        }
+    }
+
+    loadDailyPuzzle() {
+        this.difficultyButtons.removeClass('active');
+        this.dailyPuzzleBtn.addClass('active');
+        this.fetcher('https://lichess.org/api/puzzle/daily');
+    }
+
+    loadPuzzleByDifficulty(difficulty) {
+        this.dailyPuzzleBtn.removeClass('active');
+        this.difficultyButtons.removeClass('active');
+        $(`.difficulty-buttons .btn[data-difficulty=${difficulty}]`).addClass('active');
+
+        // Lichess-Bewertung für Schwierigkeitsstufen
+        const ratings = { easy: 1300, medium: 1600, hard: 2000 };
+        const rating = ratings[difficulty];
+        // Wir holen ein Rätsel in einem Bereich von +/- 100 Punkten der Zielbewertung
+        this.fetcher(`https://lichess.org/api/puzzle/rated?rating=${rating}&themes=mateIn2`);
+    }
+
+    setupPuzzle(data) {
+        this.puzzle = data;
+        this.currentMove = 0;
+
+        const orientation = this.puzzle.game.player.toLowerCase();
+        this.game.load(this.puzzle.game.fen);
+
+        const config = {
+            draggable: true,
+            position: this.game.fen(),
+            orientation: orientation === 'white' ? 'white' : 'black',
+            onDragStart: (source, piece) => {
+                // Nur Züge für die richtige Farbe erlauben
+                return this.game.turn() === piece.charAt(0);
+            },
+            onDrop: (source, target) => {
+                const move = this.game.move({
+                    from: source,
+                    to: target,
+                    promotion: 'q' // Immer zur Dame umwandeln
+                });
+                if (move === null) return 'snapback';
+                this.checkSolution(move);
+            }
+        };
+
+        this.board = Chessboard('puzzleBoard', config);
+        this.statusElement.text(`${orientation === 'white' ? 'Weiß' : 'Schwarz'} am Zug.`);
+        this.statusElement.removeClass('correct incorrect');
+        this.solutionBtn.show();
+    }
+
+    checkSolution(userMove) {
+        const solution = this.puzzle.puzzle.solution;
+        const expectedMove = solution[this.currentMove];
+
+        if (`${userMove.from}${userMove.to}` === expectedMove) {
+            this.statusElement.text('Korrekt!').addClass('correct');
+            this.currentMove++;
+
+            // Computer macht den nächsten Zug
+            setTimeout(() => {
+                if (this.currentMove < solution.length) {
+                    this.game.move(solution[this.currentMove], { sloppy: true });
+                    this.board.position(this.game.fen());
+                    this.currentMove++;
+                    this.statusElement.text('Dein Zug.').removeClass('correct');
+                } else {
+                    this.statusElement.text('Rätsel gelöst!').addClass('correct');
+                    this.solutionBtn.hide();
+                }
+            }, 500);
+        } else {
+            this.statusElement.text('Falsch, versuche es erneut.').addClass('incorrect');
+            setTimeout(() => {
+                this.game.undo();
+                this.board.position(this.game.fen());
+            }, 500);
+        }
+    }
+
+    showSolution() {
+        this.statusElement.text('Lösung wird angezeigt...');
+        let moveIndex = this.currentMove;
+
+        const playNextMove = () => {
+            if (moveIndex < this.puzzle.puzzle.solution.length) {
+                this.game.move(this.puzzle.puzzle.solution[moveIndex], { sloppy: true });
+                this.board.position(this.game.fen());
+                moveIndex++;
+                setTimeout(playNextMove, 1000);
+            } else {
+                this.statusElement.text('Rätsel gelöst!').addClass('correct');
+            }
+        };
+        playNextMove();
+        this.solutionBtn.hide();
+    }
+}
+
 // Main Application
 class App {
     constructor() {
@@ -160,6 +280,8 @@ class App {
             new ThemeManager();
             new NavigationManager();
             new InteractionManager();
+            // NEU: Schachrätsel-Manager initialisieren
+            new ChessPuzzleManager();
             console.log('Website successfully initialized');
         } catch (error) {
             console.error('Error initializing website:', error);

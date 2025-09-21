@@ -176,8 +176,37 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .impressum p { color: var(--text-sec); line-height: 1.6; }
 .content-box { max-width: 720px; }
 .content-box__text { color: var(--text-sec); line-height: 1.7; font-size: 1.1rem; }
-.footer { text-align: center; padding: var(--space-24); border-top: 1px solid var(--border); color: var(--text-sec); }
+
+/* Ergänzung für die style.css */
+
+/* --- FOOTER (MODIFIZIERT) --- */
+.footer {
+  text-align: center;
+  padding: var(--space-24);
+  border-top: 1px solid var(--border);
+  color: var(--text-sec);
+}
 .footer p { margin: 0; }
+
+.footer__links {
+  margin-bottom: 16px;
+}
+.footer__links a {
+  color: var(--text-sec);
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+.footer__links a:hover {
+  color: var(--color-accent-primary);
+}
+.footer__links span {
+  color: var(--border);
+}
+.footer__copyright {
+  font-size: 0.9rem;
+}
 
 /* --- RESPONSIVE DESIGN --- */
 @media (max-width: 768px) {
@@ -186,3 +215,126 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
   .hero__actions { flex-direction: column; align-items: center; }
   .btn { width: 100%; max-width: 300px; }
 }
+
+/* Ergänzung für die style.css */
+
+/* --- Links in Inhaltsboxen (z.B. Datenschutz, Impressum) --- */
+.content-box a,
+.impressum a {
+  color: var(--color-accent-secondary); /* Leuchtendes Cyan, passend zum Design */
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.3s ease;
+}
+
+.content-box a:hover,
+.impressum a:hover {
+  color: var(--color-accent-primary); /* Magenta beim Darüberfahren, für Konsistenz */
+}
+
+
+/* --- NEUE DESIGN-KLASSE FÜR RECHTSTEXTE (Impressum, Datenschutz) --- */
+.legal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-32);
+  max-width: 800px;
+  margin: 32px auto;
+  text-align: left;
+}
+
+.legal-content h1 {
+  text-align: center;
+  margin-bottom: var(--space-32);
+  font-size: 2.5rem;
+  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.legal-content h2 {
+  font-size: 1.8rem;
+  color: var(--color-accent-primary);
+  margin-top: var(--space-32);
+  margin-bottom: var(--space-16);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.legal-content h3 {
+  font-size: 1.4rem;
+  color: var(--text);
+  margin-top: var(--space-24);
+  margin-bottom: var(--space-16);
+}
+
+.legal-content h4 {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-top: var(--space-24);
+  margin-bottom: var(--space-16);
+}
+
+.legal-content p, .legal-content li {
+  color: var(--text-sec);
+  line-height: 1.7;
+}
+
+.legal-content a {
+  color: var(--color-accent-secondary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.3s ease;
+}
+
+.legal-content a:hover {
+  color: var(--color-accent-primary);
+}
+
+.puzzle-controls {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.difficulty-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+.difficulty-buttons .btn.active {
+  background: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+  color: white;
+}
+.puzzle-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.chessboard {
+  width: 100%;
+  max-width: 400px; /* Größe des Schachbretts */
+}
+.puzzle-info {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  min-width: 250px;
+  text-align: center;
+}
+.puzzle-status {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.puzzle-status.correct { color: #28a745; }
+.puzzle-status.incorrect { color: #dc3545; }
