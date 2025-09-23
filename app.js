@@ -140,6 +140,7 @@ class InteractionManager {
 
 
 // Chess Puzzle Management (FINALE KORREKTUR)
+// Chess Puzzle Management (Vereinfacht für Tagesrätsel)
 class ChessPuzzleManager {
     constructor() {
         this.board = null;
@@ -148,20 +149,38 @@ class ChessPuzzleManager {
         this.currentMove = 0;
         this.statusElement = $('.puzzle-status');
         this.solutionBtn = $('#showSolutionBtn');
-        this.puzzleButtons = $('.difficulty-buttons .btn, #dailyPuzzleBtn');
+        this.dailyPuzzleButton = $('#dailyPuzzleBtn'); // Wählt nur noch den einen Button aus
         this.init();
     }
 
     init() {
+        // Event-Listener für den Lösungs-Button
         this.solutionBtn.on('click', () => this.showSolution());
-        this.puzzleButtons.on('click', (e) => {
+
+        // Event-Listener für den "Tagesrätsel laden"-Button
+        this.dailyPuzzleButton.on('click', (e) => {
             e.preventDefault();
-            const clickedButton = $(e.currentTarget);
-            this.puzzleButtons.removeClass('btn--primary').addClass('btn--outline');
-            clickedButton.removeClass('btn--outline').addClass('btn--primary');
             this.fetcher('https://lichess.org/api/puzzle/daily');
         });
-        $('#dailyPuzzleBtn').click();
+
+        // Beobachtet, wann die Rätsel-Seite sichtbar wird, um Darstellungsfehler zu beheben
+        const puzzlePage = document.getElementById('schach-raetsel');
+        if (puzzlePage) {
+            const observer = new MutationObserver((mutationsList) => {
+                for (const mutation of mutationsList) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isVisible = mutation.target.classList.contains('page--active');
+                        if (isVisible && this.board) {
+                            setTimeout(() => this.board.resize(), 50);
+                        }
+                    }
+                }
+            });
+            observer.observe(puzzlePage, { attributes: true });
+        }
+
+        // Lädt das erste Rätsel automatisch, wenn die Seite initialisiert wird.
+        this.dailyPuzzleButton.click();
     }
 
     async fetcher(url) {
@@ -197,7 +216,6 @@ class ChessPuzzleManager {
             draggable: true,
             position: this.game.fen(),
             orientation: orientation,
-            // KORREKTUR: Pfad zu den Schachfiguren-Bildern hinzugefügt
             pieceTheme: 'chesspieces/wikipedia/{piece}.png',
             onDrop: (source, target) => {
                 const move = this.game.move({ from: source, to: target, promotion: 'q' });
