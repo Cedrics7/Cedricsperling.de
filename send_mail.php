@@ -21,24 +21,9 @@ try {
     exit;
 }
 
-// =========== KONFIGURATION: HIER DEINE DATEN EINTRAGEN ===========
 
-// Deine E-Mail-Adresse und dein Name für den Versand
-$deine_email = "mail@cedricsperling.de";
-$dein_name = "Cedric Sperling";
-$dein_passwort = "Qwasyx.1234"; // WICHTIG: Ersetze das hier durch dein echtes Passwort!
-
-// E-Mail-Adresse, an die die Kontaktanfragen gehen sollen (kann die gleiche sein)
-$empfaenger_email = "cedricsperling@icloud.com";
-
-// Betreff der E-Mail, die DU erhältst.
-$betreff_fuer_dich = "Neue Kontaktanfrage von Cedricsperling.de";
-
-// Betreff für die Bestätigungs-E-Mail an den Besucher.
-$betreff_fuer_besucher = "Empfangsbestätigung: Vielen Dank für Ihre Anfrage!";
-
-// ======================= ENDE DER KONFIGURATION =======================
-
+//Config laden
+    require_once __DIR__ . '/../config.php';
 
 
 // Prüfen, ob das Formular per POST-Methode gesendet wurde
@@ -93,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail->Subject = $betreff_fuer_besucher;
 
         $inhalt_fuer_besucher = "Hallo Herr $name,\n\n";
-        $inhalt_fuer_besucher .= "vielen Dank für Ihr Nachricht. Ich habe Ihre Anfrage erhalten und werde mich so schnell wie möglich bei Ihnen melden.\n\n";
+        $inhalt_fuer_besucher .= "vielen Dank für Ihre Nachricht. Ich habe Ihre Anfrage erhalten und werde mich so schnell wie möglich bei Ihnen melden.\n\n";
         $inhalt_fuer_besucher .= "Hier ist eine Kopie Ihrer Nachricht:\n";
         $inhalt_fuer_besucher .= "------------------------------------------\n";
         $inhalt_fuer_besucher .= "$nachricht\n";
