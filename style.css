@@ -275,21 +275,23 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .btn--icon {
   width: 48px;
   height: 48px;
-  padding: 0; /* Entfernt das Standard-Padding */
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%; /* Macht die Buttons rund */
+  border-radius: 50%;
+  /* Wichtig für die Icon-Größe */
+  font-size: 22px;
 }
 
-/* Passt die Farbe des Icons an die Button-Farbe an */
-.btn--icon svg {
-  transition: fill 0.3s ease;
-}
-
-/* Ändert die Farbe des Icons beim Hover, passend zum Button */
+/* Ändert die Farbe des Icons beim Hover */
 .btn--outline.btn--icon:hover {
   background: var(--surface);
   border-color: var(--color-accent-secondary);
   color: var(--color-accent-secondary);
+}
+
+/* Entfernt alte SVG-spezifische Regeln, falls vorhanden */
+.btn--icon svg {
+  display: none;
 }
