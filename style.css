@@ -249,10 +249,10 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .profile-picture {
   width: 150px;
   height: 150px;
-  border-radius: 50%; /* Macht das Bild rund */
-  object-fit: cover; /* Stellt sicher, dass das Bild den Kreis ausfüllt */
+  border-radius: 50%;
+  object-fit: cover;
   border: 3px solid var(--border);
-  flex-shrink: 0; /* Verhindert, dass das Bild schrumpft */
+  flex-shrink: 0;
 }
 
 .social-media-links {
