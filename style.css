@@ -237,3 +237,59 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
     max-width: 300px;
   }
 }
+/* --- STILE FÜR "ÜBER MICH" SEITE --- */
+
+.ueber-mich-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-32);
+  margin-bottom: var(--space-32);
+}
+
+.profile-picture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%; /* Macht das Bild rund */
+  object-fit: cover; /* Stellt sicher, dass das Bild den Kreis ausfüllt */
+  border: 3px solid var(--border);
+  flex-shrink: 0; /* Verhindert, dass das Bild schrumpft */
+}
+
+.social-media-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-16);
+  margin-top: var(--space-24);
+}
+
+/* --- ANPASSUNGEN FÜR MOBILGERÄTE --- */
+
+@media (max-width: 768px) {
+  .ueber-mich-content {
+    flex-direction: column; /* Stellt Bild und Text untereinander dar */
+    text-align: center;
+  }
+}
+/* --- STILE FÜR ICON-BUTTONS --- */
+
+.btn--icon {
+  width: 48px;
+  height: 48px;
+  padding: 0; /* Entfernt das Standard-Padding */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Macht die Buttons rund */
+}
+
+/* Passt die Farbe des Icons an die Button-Farbe an */
+.btn--icon svg {
+  transition: fill 0.3s ease;
+}
+
+/* Ändert die Farbe des Icons beim Hover, passend zum Button */
+.btn--outline.btn--icon:hover {
+  background: var(--surface);
+  border-color: var(--color-accent-secondary);
+  color: var(--color-accent-secondary);
+}
