@@ -1,20 +1,32 @@
 <?php
+// =========== Temporäre Fehlerdiagnose ===========
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 // PHPMailer-Klassen importieren
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
+
 // Autoloader von PHPMailer laden
-require 'PHPMailer/src/Exception.php';
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
+try {
+    require 'PHPMailer/src/Exception.php';
+    require 'PHPMailer/src/PHPMailer.php';
+    require 'PHPMailer/src/SMTP.php';
+} catch (Exception $e) {
+    echo "FATALER FEHLER: Eine PHPMailer-Datei konnte nicht geladen werden. Überprüfen Sie den Pfad. Fehler: " . $e->getMessage();
+    exit;
+}
 
 // =========== KONFIGURATION: HIER DEINE DATEN EINTRAGEN ===========
 
 // Deine E-Mail-Adresse und dein Name für den Versand
 $deine_email = "mail@cedricsperling.de";
 $dein_name = "Cedric Sperling";
-$dein_passwort = "Qwasyx.1234"; // WICHTIG: Ersetze das hier!
+$dein_passwort = "Qwasyx.1234"; // WICHTIG: Ersetze das hier durch dein echtes Passwort!
 
 // E-Mail-Adresse, an die die Kontaktanfragen gehen sollen (kann die gleiche sein)
 $empfaenger_email = "cedricsperling@icloud.com";
@@ -23,9 +35,10 @@ $empfaenger_email = "cedricsperling@icloud.com";
 $betreff_fuer_dich = "Neue Kontaktanfrage von Cedricsperling.de";
 
 // Betreff für die Bestätigungs-E-Mail an den Besucher.
-$betreff_fuer_besucher = "Empfangsbestätigung: Vielen Dank für deine Anfrage!";
+$betreff_fuer_besucher = "Empfangsbestätigung: Vielen Dank für Ihre Anfrage!";
 
 // ======================= ENDE DER KONFIGURATION =======================
+
 
 
 // Prüfen, ob das Formular per POST-Methode gesendet wurde
@@ -43,49 +56,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    // Ein PHPMailer-Objekt erstellen
     $mail = new PHPMailer(true);
 
     try {
         // --- SMTP-SERVER-EINSTELLUNGEN (für Strato) ---
-        // $mail->SMTPDebug = SMTP::DEBUG_SERVER; // Zum Testen und zur Fehlersuche aktivieren
-        $mail->SMTPDebug = SMTP::DEBUG_SERVER; // Zum Testen und zur Fehlersuche aktivieren
+        // Debug aus: $mail->SMTPDebug = SMTP::DEBUG_SERVER;
         $mail->isSMTP();
-        $mail->Host       = 'smtp.strato.de'; // SMTP-Server von Strato
+        $mail->Host       = 'smtp.strato.de';
         $mail->SMTPAuth   = true;
         $mail->Username   = $deine_email;
         $mail->Password   = $dein_passwort;
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL-Verschlüsselung
-        $mail->Port       = 465; // SSL-Port für Strato
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port       = 465;
         $mail->CharSet    = 'UTF-8';
 
         // --- E-MAIL AN DICH SENDEN ---
-        $mail->setFrom($deine_email, $dein_name); // Absender ist dein eigenes Postfach
-        $mail->addAddress($empfaenger_email); // Empfänger bist du
-        $mail->addReplyTo($email_besucher, $name); // Antwort-Adresse ist der Besucher
+        $mail->setFrom($deine_email, $dein_name);
+        $mail->addAddress($empfaenger_email);
+        $mail->addReplyTo($email_besucher, $name);
         $mail->Subject = $betreff_fuer_dich;
 
-        // E-Mail-Inhalt für dich
         $inhalt_fuer_dich = "Du hast eine neue Nachricht über dein Kontaktformular erhalten:\n\n";
         $inhalt_fuer_dich .= "Name: $name\n";
         $inhalt_fuer_dich .= "E-Mail: $email_besucher\n\n";
         $inhalt_fuer_dich .= "Nachricht:\n$nachricht\n";
         $mail->Body = $inhalt_fuer_dich;
 
-        $mail->send(); // E-Mail an dich versenden
+        $mail->send();
 
         // --- BESTÄTIGUNGS-E-MAIL AN DEN BESUCHER SENDEN ---
-        $mail->clearAddresses(); // Empfängerliste leeren
-        $mail->clearReplyTos();  // Antwort-Adressen leeren
+        $mail->clearAddresses();
+        $mail->clearReplyTos();
 
-        $mail->addAddress($email_besucher, $name); // Empfänger ist jetzt der Besucher
-        $mail->addReplyTo($deine_email, $dein_name); // Antwort-Adresse bist du
+        $mail->addAddress($email_besucher, $name);
+        $mail->addReplyTo($deine_email, $dein_name);
         $mail->Subject = $betreff_fuer_besucher;
 
-        // E-Mail-Inhalt für den Besucher
-        $inhalt_fuer_besucher = "Hallo $name,\n\n";
-        $inhalt_fuer_besucher .= "vielen Dank für deine Nachricht. Ich habe deine Anfrage erhalten und werde mich so schnell wie möglich bei dir melden.\n\n";
-        $inhalt_fuer_besucher .= "Hier ist eine Kopie deiner Nachricht:\n";
+        $inhalt_fuer_besucher = "Hallo Herr $name,\n\n";
+        $inhalt_fuer_besucher .= "vielen Dank für Ihr Nachricht. Ich habe Ihre Anfrage erhalten und werde mich so schnell wie möglich bei Ihnen melden.\n\n";
+        $inhalt_fuer_besucher .= "Hier ist eine Kopie Ihrer Nachricht:\n";
         $inhalt_fuer_besucher .= "------------------------------------------\n";
         $inhalt_fuer_besucher .= "$nachricht\n";
         $inhalt_fuer_besucher .= "------------------------------------------\n\n";
@@ -93,20 +102,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $inhalt_fuer_besucher .= "Cedric Sperling";
         $mail->Body = $inhalt_fuer_besucher;
 
-        $mail->send(); // E-Mail an Besucher versenden
+
+        $mail->send();
 
         http_response_code(200);
-        echo "Vielen Dank! Deine Nachricht wurde gesendet.";
+        echo "Vielen Dank! Ihre Nachricht wurde gesendet.";
 
     } catch (Exception $e) {
         http_response_code(500);
-        // Detaillierte Fehlermeldung für dich, allgemeine für den Besucher
-        // error_log("Mailer Error: " . $mail->ErrorInfo); // Schreibt Fehler in Server-Log-Datei
-        echo "Oops! Etwas ist schiefgelaufen. Bitte versuche es später erneut. Fehler: {$mail->ErrorInfo}";
+        echo "Oops! Etwas ist schiefgelaufen. Fehler: {$mail->ErrorInfo}";
     }
 } else {
-    // Nicht per POST aufgerufen, also Fehler
     http_response_code(403);
-    echo "Es gab ein Problem mit deiner Anfrage.";
+    echo "Es gab ein Problem mit Ihrer Anfrage. Kein POST.";
 }
 ?>

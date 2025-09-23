@@ -87,6 +87,7 @@ class NavigationManager {
 }
 
 // Interaction Management (mit PHP-Anbindung)
+// Interaction Management (mit PHP-Anbindung)
 class InteractionManager {
     constructor() {
         this.init();
