@@ -43,6 +43,7 @@
             <div id="userInfo" class="user-info"></div>
             <button class="nav__action-btn" id="cartBtn" aria-label="Warenkorb">
                 <i class="bi bi-cart3"></i>
+                <span id="cartCounter" class="cart-counter hidden">0</span>
             </button>
             <button class="nav__action-btn" id="authBtn" aria-label="Anmelden/Konto">
                 <i class="bi bi-person-circle"></i>
@@ -262,6 +263,8 @@
         <div id="registerFormContainer" style="display:none;">
             <h3 class="modal-title">Registrieren</h3>
             <form id="registerForm">
+                <div class="form-group"><label for="registerFirstname">Vorname</label><input type="text" id="registerFirstname" class="form-control" required></div>
+                <div class="form-group"><label for="registerLastname">Nachname</label><input type="text" id="registerLastname" class="form-control" required></div>
                 <div class="form-group"><label for="registerEmail">E-Mail</label><input type="email" id="registerEmail" class="form-control" required></div>
                 <div class="form-group"><label for="registerPassword">Passwort</label><input type="password" id="registerPassword" class="form-control" required></div>
                 <button type="submit" class="btn btn--primary btn--full-width">Konto erstellen</button>
@@ -279,21 +282,21 @@
         <div class="cart-summary">
             <strong>Total: <span id="cartTotal">0.00</span> €</strong>
         </div>
+        <button class="btn btn--primary btn--full-width" id="checkoutBtn" style="display: none;">Zur Kasse</button>
     </div>
 </div>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="footer__links">
-                <a href="#" data-page="impressum">Impressum</a>
-                <span>|</span>
-                <a href="#" data-page="datenschutz">Datenschutz</a>
-            </div>
-            <p class="footer__copyright">&copy; 2025 Cedric Sperling. Alle Rechte vorbehalten.</p>
+<footer class="footer">
+    <div class="container">
+        <div class="footer__links">
+            <a href="#" data-page="impressum">Impressum</a>
+            <span>|</span>
+            <a href="#" data-page="datenschutz">Datenschutz</a>
         </div>
-    </footer>
+        <p class="footer__copyright">© 2025 Cedric Sperling. Alle Rechte vorbehalten.</p>
+    </div>
+</footer>
 
-    <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
-

@@ -299,7 +299,9 @@ class AuthManager {
         e.preventDefault();
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
-        const result = await this.apiCall('register', { email, password });
+        const firstname = document.getElementById('registerFirstname').value;
+        const lastname = document.getElementById('registerLastname').value;
+        const result = await this.apiCall('register', { email, password, firstname, lastname });
         if (result) {
             alert('Registrierung erfolgreich! Bitte melden Sie sich jetzt an.');
             this.toggleForms(false);
@@ -311,7 +313,7 @@ class AuthManager {
         const password = document.getElementById('loginPassword').value;
         const result = await this.apiCall('login', { email, password });
         if (result && result.success) {
-            this.user = { email: result.user_email };
+            this.user = { firstname: result.user_firstname };
             this.updateUI();
             this.hideModal();
             app.shopManager.loadCart();
@@ -327,7 +329,7 @@ class AuthManager {
     }
     updateUI() {
         if (this.user) {
-            this.userInfo.textContent = `Hallo, ${this.user.email}`;
+            this.userInfo.textContent = `Hallo, ${this.user.firstname}`;
             this.authBtn.style.display = 'none';
             this.logoutBtn.style.display = 'block';
         } else {
@@ -365,16 +367,22 @@ class ShopManager {
         this.shopGrid = document.getElementById('shopGrid');
         this.cartModal = document.getElementById('cartModal');
         this.cartBtn = document.getElementById('cartBtn');
+        this.cartCounter = document.getElementById('cartCounter');
         this.cartItemsContainer = document.getElementById('cartItemsContainer');
         this.cartTotalEl = document.getElementById('cartTotal');
+        this.checkoutBtn = document.getElementById('checkoutBtn');
         this.cart = [];
         this.init();
     }
+
     async init() {
         await this.loadProducts();
         this.cartBtn.addEventListener('click', () => this.showCart());
         document.getElementById('cartModalClose').addEventListener('click', () => this.hideCart());
+        this.checkoutBtn.addEventListener('click', () => this.checkout());
+        this.loadCart();
     }
+
     showCart() { this.cartModal.style.display = 'block'; }
     hideCart() { this.cartModal.style.display = 'none'; }
 
@@ -400,65 +408,197 @@ class ShopManager {
         products.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
+            // ACHTUNG: Der onclick-Aufruf wird hier entfernt und durch einen Event-Listener ersetzt
             productCard.innerHTML = `
                 <img src="${product.image_url}" alt="${product.name}" class="product-card__image">
                 <h3 class="product-card__title">${product.name}</h3>
                 <p class="product-card__description">${product.description}</p>
                 <div class="product-card__footer">
                     <span class="product-card__price">€ ${product.price}</span>
-                    <button class="btn btn--primary" onclick="app.shopManager.addToCart(${product.id})">In den Warenkorb</button>
+                    <button class="btn btn--primary add-to-cart-btn" data-product-id="${product.id}">In den Warenkorb</button>
                 </div>
             `;
             this.shopGrid.appendChild(productCard);
         });
+
+        // Event-Listener für alle "In den Warenkorb"-Buttons hinzufügen
+        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const productId = event.target.dataset.productId;
+                this.addToCart(productId, event.target);
+            });
+        });
     }
 
-    async addToCart(productId) {
-        try {
-            const response = await fetch('api.php?action=addToCart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId }) });
-            const result = await response.json();
-            if (response.ok) {
-                alert('Produkt zum Warenkorb hinzugefügt!');
-                this.loadCart();
-            } else {
-                if (response.status === 401) {
-                    alert('Bitte melden Sie sich an, um einzukaufen.');
-                    app.authManager.showModal();
-                } else { throw new Error(result.error); }
+    async addToCart(productId, buttonElement) {
+        // 1. Animation starten
+        const productCard = buttonElement.closest('.product-card');
+        if (productCard) {
+            const productImage = productCard.querySelector('.product-card__image');
+            if (productImage) {
+                this.flyToCartAnimation(productImage);
             }
-        } catch (error) { alert(`Fehler: ${error.message}`); }
+        }
+
+        // 2. Produkt zum Warenkorb hinzufügen (ohne alert)
+        try {
+            const response = await fetch('api.php?action=addToCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId })
+            });
+            if (response.ok) {
+                this.loadCart(); // Warenkorb im Hintergrund aktualisieren
+            } else {
+                const result = await response.json();
+                console.error('Fehler:', result.error);
+            }
+        } catch (error) {
+            console.error(`Fehler beim Hinzufügen zum Warenkorb: ${error.message}`);
+        }
+    }
+
+    flyToCartAnimation(element) {
+        const cartIcon = document.getElementById('cartBtn');
+        const flyingEl = element.cloneNode(true);
+        const rect = element.getBoundingClientRect();
+
+        flyingEl.style.position = 'fixed';
+        flyingEl.style.left = `${rect.left}px`;
+        flyingEl.style.top = `${rect.top}px`;
+        flyingEl.style.width = `${rect.width}px`;
+        flyingEl.style.height = `${rect.height}px`;
+        flyingEl.style.transition = 'all 0.8s ease-in-out';
+        flyingEl.style.zIndex = '2000';
+        flyingEl.style.borderRadius = '15px';
+        flyingEl.style.opacity = '0.8';
+
+        document.body.appendChild(flyingEl);
+
+        setTimeout(() => {
+            const cartRect = cartIcon.getBoundingClientRect();
+            flyingEl.style.left = `${cartRect.left + cartRect.width / 2}px`;
+            flyingEl.style.top = `${cartRect.top + cartRect.height / 2}px`;
+            flyingEl.style.width = '0px';
+            flyingEl.style.height = '0px';
+            flyingEl.style.opacity = '0';
+        }, 50);
+
+        setTimeout(() => {
+            document.body.removeChild(flyingEl);
+            // NEU: Fügt den Pop-Effekt hinzu, anstatt nur zu schütteln
+            cartIcon.classList.add('pop');
+            setTimeout(() => cartIcon.classList.remove('pop'), 400);
+        }, 850);
+    }
+
+    // Die restlichen Funktionen (updateCart, removeFromCart, checkout, etc.) bleiben unverändert
+    async updateCart(productId, quantity) {
+        try {
+            await fetch('api.php?action=updateCart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId, quantity }) });
+            this.loadCart();
+        } catch (error) {
+            console.error('Fehler beim Aktualisieren des Warenkorbs:', error);
+        }
+    }
+
+    async removeFromCart(productId) {
+        try {
+            await fetch('api.php?action=removeFromCart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId}) });
+            this.loadCart();
+        } catch (error) {
+            console.error('Fehler beim Entfernen aus dem Warenkorb:', error);
+        }
+    }
+
+    async checkout() {
+        let orderData = {};
+        // Wenn der User nicht eingeloggt ist, frage nach Name und E-Mail
+        if (!app.authManager.user) {
+            const name = prompt("Bitte geben Sie Ihren Namen ein:", "");
+            const email = prompt("Bitte geben Sie Ihre E-Mail-Adresse für die Bestätigung ein:", "");
+            if (name === null || email === null || name === "" || email === "") {
+                alert("Bestellvorgang abgebrochen.");
+                return;
+            }
+            orderData.name = name;
+            orderData.email = email;
+        }
+
+        try {
+            const response = await fetch('api.php?action=placeOrder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) {
+                const result = await response.json();
+                throw new Error(result.error || 'Ein Fehler ist aufgetreten.');
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                alert(`Vielen Dank für Ihre Bestellung! Ihre Bestellnummer ist #${result.order_id}. Eine Bestätigung wurde an Ihre E-Mail-Adresse gesendet.`);
+                this.clearCart();
+                this.hideCart();
+            }
+        } catch (error) {
+            alert(`Fehler bei der Bestellung: ${error.message}`);
+        }
     }
 
     async loadCart() {
         try {
             const response = await fetch('api.php?action=getCart');
-            if (response.status === 401) return;
             if (!response.ok) throw new Error('Warenkorb konnte nicht geladen werden.');
             this.cart = await response.json();
             this.renderCart();
         } catch (error) { console.error(error.message); }
     }
 
+// Ersetze die renderCart-Funktion in app.js
+
     renderCart() {
         this.cartItemsContainer.innerHTML = '';
         let total = 0;
+        let totalItems = 0; // Zähler für die Gesamtanzahl der Artikel
+
         if (this.cart.length === 0) {
             this.cartItemsContainer.innerHTML = '<p>Ihr Warenkorb ist leer.</p>';
+            this.checkoutBtn.style.display = 'none';
         } else {
             this.cart.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'cart-item';
                 itemEl.innerHTML = `
-                    <img src="${item.image_url}" alt="${item.name}" class="cart-item__image">
-                    <div class="cart-item__info">
-                        <h4 class="cart-item__name">${item.name} (x${item.quantity})</h4>
-                        <p class="cart-item__price">${(item.price * item.quantity).toFixed(2)} €</p>
-                    </div>`;
+                <img src="${item.image_url}" alt="${item.name}" class="cart-item__image">
+                <div class="cart-item__info">
+                    <h4 class="cart-item__name">${item.name}</h4>
+                    <p class="cart-item__price">${(item.price * item.quantity).toFixed(2)} €</p>
+                </div>
+                <div class="cart-item__actions">
+                    <button class="btn--icon" onclick="app.shopManager.updateCart(${item.id}, ${item.quantity - 1})">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="btn--icon" onclick="app.shopManager.updateCart(${item.id}, ${item.quantity + 1})">+</button>
+                    <button class="btn--icon" onclick="app.shopManager.removeFromCart(${item.id})"><i class="bi bi-trash"></i></button>
+                </div>`;
                 this.cartItemsContainer.appendChild(itemEl);
                 total += item.price * item.quantity;
+                totalItems += item.quantity; // Addiere die Menge jedes Artikels
             });
+            this.checkoutBtn.style.display = 'block';
         }
+
         this.cartTotalEl.textContent = total.toFixed(2);
+
+        // Zähler aktualisieren
+        if (totalItems > 0) {
+            this.cartCounter.textContent = totalItems;
+            this.cartCounter.classList.remove('hidden');
+        } else {
+            this.cartCounter.classList.add('hidden');
+        }
     }
 
     clearCart() {

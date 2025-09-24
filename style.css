@@ -92,11 +92,18 @@ body::before {
 /* AKTIONSKNÖPFE IM HEADER */
 .nav__actions { display: flex; align-items: center; gap: 16px; }
 .nav__action-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 48px; height: 48px;
-  border: 1px solid var(--border); border-radius: var(--radius-full);
-  background: var(--surface); color: var(--text);
-  cursor: pointer; position: relative; overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  position: relative;
+  /* overflow: hidden;  <-- DIESE ZEILE WURDE ENTFERNT */
   transition: all var(--duration-normal) var(--ease-standard);
 }
 .nav__action-btn:hover { transform: scale(1.05); }
@@ -470,3 +477,49 @@ body.shop-active .shop__actions {
   font-size: 1.2rem;
   margin-top: var(--space-24);
 }
+
+/* --- ZUSÄTZLICHER WARENKORB-EFFEKT --- */
+#cartBtn.pop {
+  animation: cartPop 0.4s ease-out;
+}
+
+@keyframes cartPop {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(var(--color-accent-primary-rgb), 0);
+  }
+  50% {
+    transform: scale(1.25);
+    box-shadow: 0 0 20px rgba(var(--color-accent-primary-rgb), 0.7);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(var(--color-accent-primary-rgb), 0);
+  }
+}
+
+/* --- WARENKORB-ZÄHLER --- */
+.cart-counter {
+  position: absolute;
+  /* Positive Werte rücken den Zähler wieder leicht nach innen */
+  top: -2px;
+  right: -2px;
+  background-color: var(--color-accent-primary);
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(1);
+  transition: transform 0.2s ease;
+  border: 2px solid var(--surface);
+}
+
+.cart-counter.hidden {
+  transform: scale(0);
+}
+
