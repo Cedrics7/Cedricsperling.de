@@ -41,7 +41,34 @@
                 <span class="nav__toggle-line"></span>
                 <span class="nav__toggle-line"></span>
             </button>
+            <button class="nav__action-btn" id="cartBtn" aria-label="Warenkorb anzeigen">
+                <i class="bi bi-cart"></i> </button>
+            <button class="nav__action-btn" id="loginBtn" aria-label="Anmelden">
+                <i class="bi bi-person-circle"></i>
+            </button>
+            <span id="userInfo"></span>
+            <button class="nav__action-btn" id="logoutBtn" style="display:none;" aria-label="Abmelden">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
         </div>
+        <section class="page" id="warenkorb">
+            <div class="container">
+                <h2 class="page__title">Mein Warenkorb</h2>
+                <div id="cartContainer">
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="login-seite">
+            <div class="container">
+                <div class="form-container">
+                    <h2 class="page__title">Anmelden</h2>
+                    <form id="loginForm">
+                        <button type="submit" class="btn btn--primary">Anmelden</button>
+                    </form>
+                </div>
+            </div>
+        </section>
     </nav>
 </header>
 
