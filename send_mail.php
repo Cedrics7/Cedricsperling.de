@@ -23,7 +23,7 @@ try {
 
 
 //Config laden
-    require_once __DIR__ . '/../config.php';
+    require_once __DIR__ . '/config.php';
 
 
 // Prüfen, ob das Formular per POST-Methode gesendet wurde
