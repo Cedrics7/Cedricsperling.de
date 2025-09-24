@@ -1,12 +1,11 @@
 <?php
-// api.php - FINALE KORRIGIERTE VERSION
+// api.php - FINALE, VOLLSTÄNDIGE VERSION
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// PHPMailer und Konfiguration für Bestell-E-Mails einbinden
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require 'PHPMailer/src/Exception.php';
@@ -28,7 +27,7 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8mb4");
 
-// --- API-Router (ruft die Funktionen unten auf) ---
+// --- API-Router ---
 $action = $_REQUEST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 header('Content-Type: application/json');
@@ -258,7 +257,6 @@ function handleRemoveFromCart($conn) {
 }
 
 function handlePlaceOrder($conn) {
-    global $deine_email, $dein_passwort, $dein_name;
     $data = json_decode(file_get_contents('php://input'), true);
     $customer_name = $data['name'] ?? 'Gast';
     $customer_email = $data['email'] ?? '';
@@ -379,5 +377,4 @@ function sendOrderConfirmationEmail($email, $name, $order_id, $items, $total) {
         error_log("Confirmation mail for order #$order_id to $email failed: " . $mail->ErrorInfo);
     }
 }
-
 ?>
