@@ -6,10 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cedric Sperling - Portfolio</title>
-
+    <link rel="icon" href="pig.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <link rel="stylesheet" href="style.css">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
@@ -28,7 +28,8 @@
             <li><a href="#" class="nav__link" data-page="kontakt">Kontakt</a></li>
             <li><a href="#" class="nav__link" data-page="shop">Shop</a></li>
         </ul>
-        <div class="nav__actions">
+
+        <div class="nav__actions" id="navActions">
             <button class="nav__action-btn" id="homeBtn" aria-label="Zur Startseite">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             </button>
@@ -36,39 +37,26 @@
                 <span class="theme-icon theme-icon--sun">☀️</span>
                 <span class="theme-icon theme-icon--moon">🌙</span>
             </button>
-            <button class="nav__toggle" id="navToggle" aria-label="Menü öffnen">
-                <span class="nav__toggle-line"></span>
-                <span class="nav__toggle-line"></span>
-                <span class="nav__toggle-line"></span>
+        </div>
+
+        <div class="shop__actions" id="shopActions">
+            <div id="userInfo" class="user-info"></div>
+            <button class="nav__action-btn" id="cartBtn" aria-label="Warenkorb">
+                <i class="bi bi-cart3"></i>
             </button>
-            <button class="nav__action-btn" id="cartBtn" aria-label="Warenkorb anzeigen">
-                <i class="bi bi-cart"></i> </button>
-            <button class="nav__action-btn" id="loginBtn" aria-label="Anmelden">
+            <button class="nav__action-btn" id="authBtn" aria-label="Anmelden/Konto">
                 <i class="bi bi-person-circle"></i>
             </button>
-            <span id="userInfo"></span>
-            <button class="nav__action-btn" id="logoutBtn" style="display:none;" aria-label="Abmelden">
+            <button class="nav__action-btn" id="logoutBtn" aria-label="Abmelden" style="display: none;">
                 <i class="bi bi-box-arrow-right"></i>
             </button>
         </div>
-        <section class="page" id="warenkorb">
-            <div class="container">
-                <h2 class="page__title">Mein Warenkorb</h2>
-                <div id="cartContainer">
-                </div>
-            </div>
-        </section>
 
-        <section class="page" id="login-seite">
-            <div class="container">
-                <div class="form-container">
-                    <h2 class="page__title">Anmelden</h2>
-                    <form id="loginForm">
-                        <button type="submit" class="btn btn--primary">Anmelden</button>
-                    </form>
-                </div>
-            </div>
-        </section>
+        <button class="nav__toggle" id="navToggle" aria-label="Menü öffnen">
+            <span class="nav__toggle-line"></span>
+            <span class="nav__toggle-line"></span>
+            <span class="nav__toggle-line"></span>
+        </button>
     </nav>
 </header>
 
@@ -259,6 +247,41 @@
         </div>
     </section>
 </main>
+<div class="modal" id="authModal">
+    <div class="modal-content">
+        <button class="modal-close" id="authModalClose">×</button>
+        <div id="loginFormContainer">
+            <h3 class="modal-title">Anmelden</h3>
+            <form id="loginForm">
+                <div class="form-group"><label for="loginEmail">E-Mail</label><input type="email" id="loginEmail" class="form-control" required></div>
+                <div class="form-group"><label for="loginPassword">Passwort</label><input type="password" id="loginPassword" class="form-control" required></div>
+                <button type="submit" class="btn btn--primary btn--full-width">Anmelden</button>
+                <p class="form-switch">Noch kein Konto? <a href="#" id="showRegister">Registrieren</a></p>
+            </form>
+        </div>
+        <div id="registerFormContainer" style="display:none;">
+            <h3 class="modal-title">Registrieren</h3>
+            <form id="registerForm">
+                <div class="form-group"><label for="registerEmail">E-Mail</label><input type="email" id="registerEmail" class="form-control" required></div>
+                <div class="form-group"><label for="registerPassword">Passwort</label><input type="password" id="registerPassword" class="form-control" required></div>
+                <button type="submit" class="btn btn--primary btn--full-width">Konto erstellen</button>
+                <p class="form-switch">Bereits ein Konto? <a href="#" id="showLogin">Anmelden</a></p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="cartModal">
+    <div class="modal-content">
+        <button class="modal-close" id="cartModalClose">×</button>
+        <h3 class="modal-title">Warenkorb</h3>
+        <div id="cartItemsContainer"><p>Ihr Warenkorb ist leer.</p></div>
+        <div class="cart-summary">
+            <strong>Total: <span id="cartTotal">0.00</span> €</strong>
+        </div>
+    </div>
+</div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer__links">

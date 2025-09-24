@@ -34,33 +34,25 @@ class NavigationManager {
         this.body = document.body;
         this.init();
     }
-
     init() {
-        // Eine Schleife für alle Links (Header, Footer, Buttons)
         this.navigationTriggers.forEach(trigger => {
             trigger.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Der Home-Button hat kein data-page Attribut, daher wird hier 'startseite' fest zugewiesen
                 const pageId = trigger.getAttribute('data-page') || trigger.getAttribute('data-page-link') || 'startseite';
                 this.showPage(pageId);
             });
         });
-        if (this.navToggle) {
-            this.navToggle.addEventListener('click', () => this.toggleMobileMenu());
-        }
+        if (this.navToggle) { this.navToggle.addEventListener('click', () => this.toggleMobileMenu()); }
         this.showPage('startseite');
     }
-
     toggleMobileMenu() {
         if (this.navToggle && this.navMenu) {
             this.navToggle.classList.toggle('active');
             this.navMenu.classList.toggle('active');
         }
     }
-
     showPage(pageId) {
         if (!pageId) return;
-
         this.pages.forEach(page => page.classList.remove('page--active'));
         const targetPage = document.getElementById(pageId);
         if (targetPage) {
@@ -68,18 +60,18 @@ class NavigationManager {
             this.currentPage = pageId;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
-        // Sorge dafür, dass der richtige Link in der Hauptnavigation aktiv ist
         this.updateActiveNavLink();
-    }
 
+        // KORREKTUR: Steuert die Sichtbarkeit der Header-Buttons
+        if (pageId === 'shop') {
+            this.body.classList.add('shop-active');
+        } else {
+            this.body.classList.remove('shop-active');
+        }
+    }
     updateActiveNavLink() {
         this.navLinks.forEach(link => {
-            if (link.getAttribute('data-page') === this.currentPage) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
+            link.getAttribute('data-page') === this.currentPage ? link.classList.add('active') : link.classList.remove('active');
         });
     }
 }
@@ -270,8 +262,7 @@ class ChessPuzzleManager {
 
 class AuthManager {
     constructor() {
-        this.user = null; // Speichert user-infos {email: '...'}
-        // UI Elemente
+        this.user = null;
         this.authModal = document.getElementById('authModal');
         this.authBtn = document.getElementById('authBtn');
         this.logoutBtn = document.getElementById('logoutBtn');
@@ -279,35 +270,23 @@ class AuthManager {
         this.init();
     }
     init() {
-        // Modal-Steuerung
         this.authBtn.addEventListener('click', () => this.showModal());
         this.logoutBtn.addEventListener('click', () => this.logout());
         document.getElementById('authModalClose').addEventListener('click', () => this.hideModal());
-        // Formular-Wechsel
         document.getElementById('showRegister').addEventListener('click', (e) => { e.preventDefault(); this.toggleForms(true); });
         document.getElementById('showLogin').addEventListener('click', (e) => { e.preventDefault(); this.toggleForms(false); });
-        // Formular-Submits
         document.getElementById('loginForm').addEventListener('submit', (e) => this.login(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.register(e));
-
-        this.checkSession();
     }
-
     showModal() { this.authModal.style.display = 'block'; }
     hideModal() { this.authModal.style.display = 'none'; }
-
     toggleForms(showRegister) {
         document.getElementById('loginFormContainer').style.display = showRegister ? 'none' : 'block';
         document.getElementById('registerFormContainer').style.display = showRegister ? 'block' : 'none';
     }
-
     async apiCall(action, data) {
         try {
-            const response = await fetch(`api.php?action=${action}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            const response = await fetch(`api.php?action=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Ein Fehler ist aufgetreten.');
             return result;
@@ -316,7 +295,6 @@ class AuthManager {
             return null;
         }
     }
-
     async register(e) {
         e.preventDefault();
         const email = document.getElementById('registerEmail').value;
@@ -327,7 +305,6 @@ class AuthManager {
             this.toggleForms(false);
         }
     }
-
     async login(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
@@ -337,24 +314,17 @@ class AuthManager {
             this.user = { email: result.user_email };
             this.updateUI();
             this.hideModal();
-            app.shopManager.loadCart(); // Warenkorb neu laden nach Login
+            app.shopManager.loadCart();
         }
     }
-
     async logout() {
         const result = await this.apiCall('logout', {});
         if (result && result.success) {
             this.user = null;
             this.updateUI();
-            app.shopManager.clearCart(); // Warenkorb-Anzeige leeren
+            app.shopManager.clearCart();
         }
     }
-
-    async checkSession() {
-        // Diese Funktion könnte man erweitern, um die Session vom Server zu prüfen
-        // Vorerst bleibt sie leer, da die API bei jeder Aktion prüft.
-    }
-
     updateUI() {
         if (this.user) {
             this.userInfo.textContent = `Hallo, ${this.user.email}`;
@@ -408,16 +378,44 @@ class ShopManager {
     showCart() { this.cartModal.style.display = 'block'; }
     hideCart() { this.cartModal.style.display = 'none'; }
 
-    async loadProducts() { /* ... alter Code ... */ }
-    renderProducts(products) { /* ... alter Code ... */ }
+    async loadProducts() {
+        if (!this.shopGrid) return;
+        try {
+            const response = await fetch('api.php?action=getProducts');
+            if (!response.ok) throw new Error('Netzwerk-Antwort war nicht OK');
+            const products = await response.json();
+            this.renderProducts(products);
+        } catch (error) {
+            console.error('Fehler beim Laden der Produkte:', error);
+            this.shopGrid.innerHTML = '<p>Produkte konnten leider nicht geladen werden.</p>';
+        }
+    }
+
+    renderProducts(products) {
+        this.shopGrid.innerHTML = '';
+        if (products.length === 0) {
+            this.shopGrid.innerHTML = '<p>Aktuell sind keine Produkte verfügbar.</p>';
+            return;
+        }
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.innerHTML = `
+                <img src="${product.image_url}" alt="${product.name}" class="product-card__image">
+                <h3 class="product-card__title">${product.name}</h3>
+                <p class="product-card__description">${product.description}</p>
+                <div class="product-card__footer">
+                    <span class="product-card__price">€ ${product.price}</span>
+                    <button class="btn btn--primary" onclick="app.shopManager.addToCart(${product.id})">In den Warenkorb</button>
+                </div>
+            `;
+            this.shopGrid.appendChild(productCard);
+        });
+    }
 
     async addToCart(productId) {
         try {
-            const response = await fetch('api.php?action=addToCart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: productId })
-            });
+            const response = await fetch('api.php?action=addToCart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId }) });
             const result = await response.json();
             if (response.ok) {
                 alert('Produkt zum Warenkorb hinzugefügt!');
@@ -426,25 +424,19 @@ class ShopManager {
                 if (response.status === 401) {
                     alert('Bitte melden Sie sich an, um einzukaufen.');
                     app.authManager.showModal();
-                } else {
-                    throw new Error(result.error);
-                }
+                } else { throw new Error(result.error); }
             }
-        } catch (error) {
-            alert(`Fehler: ${error.message}`);
-        }
+        } catch (error) { alert(`Fehler: ${error.message}`); }
     }
 
     async loadCart() {
         try {
             const response = await fetch('api.php?action=getCart');
-            if (response.status === 401) { return; } // Nicht eingeloggt
+            if (response.status === 401) return;
             if (!response.ok) throw new Error('Warenkorb konnte nicht geladen werden.');
             this.cart = await response.json();
             this.renderCart();
-        } catch (error) {
-            console.error(error.message);
-        }
+        } catch (error) { console.error(error.message); }
     }
 
     renderCart() {
@@ -461,8 +453,7 @@ class ShopManager {
                     <div class="cart-item__info">
                         <h4 class="cart-item__name">${item.name} (x${item.quantity})</h4>
                         <p class="cart-item__price">${(item.price * item.quantity).toFixed(2)} €</p>
-                    </div>
-                `;
+                    </div>`;
                 this.cartItemsContainer.appendChild(itemEl);
                 total += item.price * item.quantity;
             });
@@ -475,7 +466,6 @@ class ShopManager {
         this.renderCart();
     }
 }
-
 
 // Initialize the application
 const app = new App();
