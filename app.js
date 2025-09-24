@@ -284,12 +284,73 @@ class App {
             new ThemeManager();
             new NavigationManager();
             new InteractionManager();
-            // NEU: Schachrätsel-Manager initialisieren
+
             new ChessPuzzleManager();
-            console.log('Website successfully initialized');
+            this.shopManager = new ShopManager();
         } catch (error) {
             console.error('Error initializing website:', error);
         }
+    }
+}
+
+// Shop Management
+class ShopManager {
+    constructor() {
+        this.shopGrid = document.getElementById('shopGrid');
+        this.init();
+    }
+
+    async init() {
+        await this.loadProducts();
+    }
+
+    async loadProducts() {
+        if (!this.shopGrid) return;
+
+        try {
+            // Die Produkte von unserer neuen API laden
+            const response = await fetch('api.php?action=getProducts');
+            if (!response.ok) {
+                throw new Error('Netzwerk-Antwort war nicht OK');
+            }
+            const products = await response.json();
+
+            this.renderProducts(products);
+
+        } catch (error) {
+            console.error('Fehler beim Laden der Produkte:', error);
+            this.shopGrid.innerHTML = '<p>Produkte konnten leider nicht geladen werden.</p>';
+        }
+    }
+
+    renderProducts(products) {
+        this.shopGrid.innerHTML = ''; // Leere das Gitter zuerst
+
+        if (products.length === 0) {
+            this.shopGrid.innerHTML = '<p>Aktuell sind keine Produkte verfügbar.</p>';
+            return;
+        }
+
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card'; // Diese Klasse müssen wir noch stylen
+            productCard.innerHTML = `
+                <img src="${product.image_url}" alt="${product.name}" class="product-card__image">
+                <h3 class="product-card__title">${product.name}</h3>
+                <p class="product-card__description">${product.description}</p>
+                <div class="product-card__footer">
+                    <span class="product-card__price">€ ${product.price}</span>
+                    <button class="btn btn--primary" onclick="app.shopManager.addToCart(${product.id})">In den Warenkorb</button>
+                </div>
+            `;
+            this.shopGrid.appendChild(productCard);
+        });
+    }
+
+    addToCart(productId) {
+        // Diese Funktion implementieren wir im nächsten Schritt!
+        console.log(`Produkt mit ID ${productId} zum Warenkorb hinzugefügt.`);
+        alert('Produkt zum Warenkorb hinzugefügt! (Funktionalität folgt)');
     }
 }
 
