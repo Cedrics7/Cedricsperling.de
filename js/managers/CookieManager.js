@@ -16,10 +16,12 @@ export class CookieManager {
     }
 
     init() {
-        if (this.getCookie(this.consentCookieName)) {
+        const consent = this.getCookie(this.consentCookieName);
+        if (consent) {
             this.banner.style.display = 'none';
+            // Skripte basierend auf gespeicherter Einwilligung laden
+            this.loadScripts(consent);
         } else {
-            // Slight delay to ensure smooth transition
             setTimeout(() => this.showBanner(), 500);
         }
 
@@ -73,6 +75,11 @@ export class CookieManager {
     }
 
     showModal() {
+        // Lade die aktuellen Einstellungen ins Modal, bevor es angezeigt wird
+        const consent = this.getCookie(this.consentCookieName) || {};
+        document.getElementById('cookie-functional').checked = !!consent.functional;
+        document.getElementById('cookie-analytics').checked = !!consent.analytics;
+        document.getElementById('cookie-marketing').checked = !!consent.marketing;
         this.modal.style.display = 'block';
     }
 
@@ -83,6 +90,7 @@ export class CookieManager {
     acceptAll() {
         const prefs = {
             necessary: true,
+            functional: true,
             analytics: true,
             marketing: true,
             timestamp: new Date().toISOString()
@@ -95,6 +103,7 @@ export class CookieManager {
     rejectAll() {
         const prefs = {
             necessary: true,
+            functional: false,
             analytics: false,
             marketing: false,
             timestamp: new Date().toISOString()
@@ -108,6 +117,7 @@ export class CookieManager {
         e.preventDefault();
         const prefs = {
             necessary: true,
+            functional: document.getElementById('cookie-functional').checked,
             analytics: document.getElementById('cookie-analytics').checked,
             marketing: document.getElementById('cookie-marketing').checked,
             timestamp: new Date().toISOString()
@@ -118,17 +128,18 @@ export class CookieManager {
         this.loadScripts(prefs);
     }
 
-    // Hier kannst du Skripte basierend auf der Zustimmung laden
+    hasConsent(category) {
+        const consent = this.getCookie(this.consentCookieName);
+        return consent && consent[category];
+    }
+
     loadScripts(prefs) {
         console.log("Cookie-Einwilligung erteilt:", prefs);
-        // Beispiel: Lade Google Analytics, wenn zugestimmt wurde
         if (prefs.analytics) {
             console.log("Lade Analyse-Skripte...");
-            // Füge hier den Code zum Laden deiner Analyse-Skripte ein
         }
         if (prefs.marketing) {
             console.log("Lade Marketing-Skripte...");
-            // Füge hier den Code zum Laden deiner Marketing-Skripte ein
         }
     }
 }

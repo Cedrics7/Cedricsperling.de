@@ -25,9 +25,11 @@ class App {
                 this.chessPuzzleManager = new ChessPuzzleManager();
             });
 
-            // Make managers accessible for inline event handlers
+            // Make managers globally accessible for easy inter-manager communication
             window.app = {
-                shopManager: this.shopManager
+                shopManager: this.shopManager,
+                cookieManager: this.cookieManager,
+                authManager: this.authManager
             };
 
         } catch (error) {

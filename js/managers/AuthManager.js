@@ -9,24 +9,23 @@ export class AuthManager {
         this.userInfo = document.getElementById('userInfo');
         this.init();
     }
+
     init() {
         this.authBtn.addEventListener('click', () => this.showModal());
         this.profileBtn.addEventListener('click', () => this.showProfileModal());
         this.logoutBtn.addEventListener('click', () => this.logout());
         this.checkLoginState();
+
         document.getElementById('authModalClose').addEventListener('click', () => this.hideModal());
         document.getElementById('profileModalClose').addEventListener('click', () => this.hideProfileModal());
-
         document.getElementById('showRegister').addEventListener('click', (e) => { e.preventDefault(); this.toggleForms(true); });
         document.getElementById('showLogin').addEventListener('click', (e) => { e.preventDefault(); this.toggleForms(false); });
-
         document.getElementById('loginForm').addEventListener('submit', (e) => this.login(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.register(e));
         document.getElementById('profileForm').addEventListener('submit', (e) => this.updateProfile(e));
         document.getElementById('profileShippingSameAsBilling').addEventListener('change', (e) => {
             document.getElementById('profileShippingAddressContainer').style.display = e.target.checked ? 'none' : 'block';
         });
-
     }
 
     showModal() { this.authModal.style.display = 'block'; }
@@ -57,6 +56,7 @@ export class AuthManager {
             return null;
         }
     }
+
     async register(e) {
         e.preventDefault();
         const email = document.getElementById('registerEmail').value;
@@ -69,13 +69,22 @@ export class AuthManager {
             this.toggleForms(false);
         }
     }
+
     async login(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
-        // Hier wird der Status der Checkbox ausgelesen
-        const rememberMe = document.getElementById('rememberMe').checked;
-        // Und hier an die API gesendet
+        const rememberMeCheckbox = document.getElementById('rememberMe').checked;
+
+        // Greife auf den CookieManager über das globale app-Objekt zu
+        const hasFunctionalConsent = window.app.cookieManager.hasConsent('functional');
+
+        const rememberMe = rememberMeCheckbox && hasFunctionalConsent;
+
+        if (rememberMeCheckbox && !hasFunctionalConsent) {
+            this.showToast('Um angemeldet zu bleiben, akzeptieren Sie bitte die funktionalen Cookies.', 'error');
+        }
+
         const result = await this.apiCall('login', { email, password, rememberMe });
         if (result && result.success) {
             this.user = { firstname: result.user_firstname };
@@ -85,7 +94,6 @@ export class AuthManager {
         }
     }
 
-    // Neue Funktion in AuthManager.js
     async checkLoginState() {
         const result = await this.apiCall('checkLoginState', null, 'GET');
         if (result && result.loggedIn) {
@@ -94,8 +102,6 @@ export class AuthManager {
             window.app.shopManager.loadCart();
         }
     }
-
-
 
     async logout() {
         const result = await this.apiCall('logout', {});
@@ -122,7 +128,6 @@ export class AuthManager {
             document.getElementById('profileShippingZip').value = user.shipping_zip || '';
             document.getElementById('profileShippingCity').value = user.shipping_city || '';
 
-            // Checkbox-Logik
             const hasSeparateShipping = user.shipping_street || user.shipping_house_nr || user.shipping_zip || user.shipping_city;
             const checkbox = document.getElementById('profileShippingSameAsBilling');
             checkbox.checked = !hasSeparateShipping;
