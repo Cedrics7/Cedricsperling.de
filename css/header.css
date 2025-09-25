@@ -22,7 +22,8 @@
 .user-info {
     font-weight: 600;
     font-size: 0.9rem;
-    margin-right: 16px; /* Abstand zum nächsten Element */
+    margin-left: auto; /* NEU: Schiebt das Element nach rechts */
+    margin-right: 16px;
 }
 .shop__actions { display: none; }
 body.shop-active .nav__actions { display: none; }

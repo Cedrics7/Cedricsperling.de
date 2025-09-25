@@ -293,8 +293,9 @@
     <div class="modal-content">
         <button class="modal-close" id="guestCheckoutModalClose">×</button>
         <h3 class="modal-title">Als Gast bestellen</h3>
-        <p>Sie haben bereits ein Konto? <a href="#" id="switchToLogin">Anmelden</a> oder <a href="#" id="switchToRegister">Registrieren</a></p>
+        <p class="form-switch">Sie haben bereits ein Konto? <a href="#" id="switchToLogin">Anmelden</a> oder <a href="#" id="switchToRegister">Registrieren</a></p>
         <form id="guestCheckoutForm">
+            <h4>Rechnungsadresse</h4>
             <div class="form-group"><label for="guestFirstname">Vorname</label><input type="text" id="guestFirstname" class="form-control" required></div>
             <div class="form-group"><label for="guestLastname">Nachname</label><input type="text" id="guestLastname" class="form-control" required></div>
             <div class="form-group"><label for="guestEmail">E-Mail</label><input type="email" id="guestEmail" class="form-control" required></div>
@@ -302,10 +303,25 @@
             <div class="form-group"><label for="guestHouseNr">Hausnummer</label><input type="text" id="guestHouseNr" class="form-control" required></div>
             <div class="form-group"><label for="guestZip">PLZ</label><input type="text" id="guestZip" class="form-control" required></div>
             <div class="form-group"><label for="guestCity">Ort</label><input type="text" id="guestCity" class="form-control" required></div>
+            <hr>
+            <div class="form-group">
+                <input type="checkbox" id="shippingSameAsBilling" checked>
+                <label for="shippingSameAsBilling">Lieferadresse entspricht der Rechnungsadresse</label>
+            </div>
+            <div id="shippingAddressContainer" style="display: none;">
+                <h4>Lieferadresse</h4>
+                <div class="form-group"><label for="shippingFirstname">Vorname</label><input type="text" id="shippingFirstname" class="form-control"></div>
+                <div class="form-group"><label for="shippingLastname">Nachname</label><input type="text" id="shippingLastname" class="form-control"></div>
+                <div class="form-group"><label for="shippingStreet">Straße</label><input type="text" id="shippingStreet" class="form-control"></div>
+                <div class="form-group"><label for="shippingHouseNr">Hausnummer</label><input type="text" id="shippingHouseNr" class="form-control"></div>
+                <div class="form-group"><label for="shippingZip">PLZ</label><input type="text" id="shippingZip" class="form-control"></div>
+                <div class="form-group"><label for="shippingCity">Ort</label><input type="text" id="shippingCity" class="form-control"></div>
+            </div>
             <button type="submit" class="btn btn--primary btn--full-width">Als Gast bestellen</button>
         </form>
     </div>
 </div>
+
 
 <div class="modal" id="profileModal">
     <div class="modal-content">
@@ -316,15 +332,28 @@
             <div class="form-group"><label for="profileLastname">Nachname</label><input type="text" id="profileLastname" class="form-control" required></div>
             <div class="form-group"><label for="profileEmail">E-Mail</label><input type="email" id="profileEmail" class="form-control" disabled></div>
             <hr>
-            <h4 class="modal-subtitle">Lieferadresse</h4>
+            <h4 class="modal-subtitle">Rechnungsadresse</h4>
             <div class="form-group"><label for="profileStreet">Straße</label><input type="text" id="profileStreet" class="form-control"></div>
             <div class="form-group"><label for="profileHouseNr">Hausnummer</label><input type="text" id="profileHouseNr" class="form-control"></div>
             <div class="form-group"><label for="profileZip">PLZ</label><input type="text" id="profileZip" class="form-control"></div>
             <div class="form-group"><label for="profileCity">Ort</label><input type="text" id="profileCity" class="form-control"></div>
+            <hr>
+            <div class="form-group">
+                <input type="checkbox" id="profileShippingSameAsBilling" checked>
+                <label for="profileShippingSameAsBilling">Lieferadresse entspricht der Rechnungsadresse</label>
+            </div>
+            <div id="profileShippingAddressContainer" style="display: none;">
+                <h4 class="modal-subtitle">Lieferadresse</h4>
+                <div class="form-group"><label for="profileShippingStreet">Straße</label><input type="text" id="profileShippingStreet" class="form-control"></div>
+                <div class="form-group"><label for="profileShippingHouseNr">Hausnummer</label><input type="text" id="profileShippingHouseNr" class="form-control"></div>
+                <div class="form-group"><label for="profileShippingZip">PLZ</label><input type="text" id="profileShippingZip" class="form-control"></div>
+                <div class="form-group"><label for="profileShippingCity">Ort</label><input type="text" id="profileShippingCity" class="form-control"></div>
+            </div>
             <button type="submit" class="btn btn--primary btn--full-width">Änderungen speichern</button>
         </form>
     </div>
 </div>
+
 
 
 <footer class="footer">

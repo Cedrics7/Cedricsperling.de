@@ -23,6 +23,10 @@ export class AuthManager {
         document.getElementById('loginForm').addEventListener('submit', (e) => this.login(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.register(e));
         document.getElementById('profileForm').addEventListener('submit', (e) => this.updateProfile(e));
+        document.getElementById('profileShippingSameAsBilling').addEventListener('change', (e) => {
+            document.getElementById('profileShippingAddressContainer').style.display = e.target.checked ? 'none' : 'block';
+        });
+
     }
 
     showModal() { this.authModal.style.display = 'block'; }
@@ -97,19 +101,43 @@ export class AuthManager {
             document.getElementById('profileHouseNr').value = user.house_nr || '';
             document.getElementById('profileZip').value = user.zip || '';
             document.getElementById('profileCity').value = user.city || '';
+            document.getElementById('profileShippingStreet').value = user.shipping_street || '';
+            document.getElementById('profileShippingHouseNr').value = user.shipping_house_nr || '';
+            document.getElementById('profileShippingZip').value = user.shipping_zip || '';
+            document.getElementById('profileShippingCity').value = user.shipping_city || '';
+
+            // Checkbox-Logik
+            const hasSeparateShipping = user.shipping_street || user.shipping_house_nr || user.shipping_zip || user.shipping_city;
+            const checkbox = document.getElementById('profileShippingSameAsBilling');
+            checkbox.checked = !hasSeparateShipping;
+            document.getElementById('profileShippingAddressContainer').style.display = hasSeparateShipping ? 'block' : 'none';
         }
     }
 
     async updateProfile(e) {
         e.preventDefault();
+        const isSameAddress = document.getElementById('profileShippingSameAsBilling').checked;
+
         const data = {
             firstname: document.getElementById('profileFirstname').value,
             lastname: document.getElementById('profileLastname').value,
             street: document.getElementById('profileStreet').value,
             house_nr: document.getElementById('profileHouseNr').value,
             zip: document.getElementById('profileZip').value,
-            city: document.getElementById('profileCity').value
+            city: document.getElementById('profileCity').value,
+            shipping_street: '',
+            shipping_house_nr: '',
+            shipping_zip: '',
+            shipping_city: ''
         };
+
+        if (!isSameAddress) {
+            data.shipping_street = document.getElementById('profileShippingStreet').value;
+            data.shipping_house_nr = document.getElementById('profileShippingHouseNr').value;
+            data.shipping_zip = document.getElementById('profileShippingZip').value;
+            data.shipping_city = document.getElementById('profileShippingCity').value;
+        }
+
         const result = await this.apiCall('updateUserProfile', data);
         if (result && result.success) {
             this.showToast('Profil erfolgreich aktualisiert!', 'success');

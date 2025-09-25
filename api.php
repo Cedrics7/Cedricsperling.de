@@ -1,10 +1,13 @@
 <?php
-// api.php - FINALE KORRIGIERTE VERSION
-ini_set('display_errors', 1);
+// api.php - FINALE KORRIGIERTE VERSION V3
+ini_set('display_errors', 0); // Fehler nicht direkt ausgeben
 error_reporting(E_ALL);
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// Setzt den Header sofort, um sicherzustellen, dass die Antwort als JSON interpretiert wird.
+header('Content-Type: application/json');
 
 // PHPMailer und Konfiguration für Bestell-E-Mails einbinden
 use PHPMailer\PHPMailer\PHPMailer;
@@ -21,7 +24,6 @@ $password = "Salzig";
 $dbname = "webshop";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
-    header('Content-Type: application/json');
     http_response_code(500);
     echo json_encode(['error' => 'DB-Verbindung fehlgeschlagen: ' . $conn->connect_error]);
     exit;
@@ -31,25 +33,31 @@ $conn->set_charset("utf8mb4");
 // --- API-Router (ruft die Funktionen unten auf) ---
 $action = $_REQUEST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
-header('Content-Type: application/json');
 
-switch ($action) {
-    case 'getProducts': handleGetProducts($conn); break;
-    case 'register': if ($method == 'POST') handleRegister($conn); break;
-    case 'login': if ($method == 'POST') handleLogin($conn); break;
-    case 'logout': handleLogout(); break;
-    case 'getUserProfile': if ($method == 'GET') handleGetUserProfile($conn); break;
-    case 'updateUserProfile': if ($method == 'POST') handleUpdateUserProfile($conn); break;
-    case 'getCart': handleGetCart($conn); break;
-    case 'addToCart': if ($method == 'POST') handleAddToCart($conn); break;
-    case 'updateCart': if ($method == 'POST') handleUpdateCart($conn); break;
-    case 'removeFromCart': if ($method == 'POST') handleRemoveFromCart($conn); break;
-    case 'placeOrder': if ($method == 'POST') handlePlaceOrder($conn); break;
-    default:
-        http_response_code(404);
-        echo json_encode(['error' => 'Aktion nicht gefunden']);
-        break;
+// Haupt-Try-Catch-Block, um alle Fehler abzufangen und als JSON zurückzugeben
+try {
+    switch ($action) {
+        case 'getProducts': handleGetProducts($conn); break;
+        case 'register': if ($method == 'POST') handleRegister($conn); break;
+        case 'login': if ($method == 'POST') handleLogin($conn); break;
+        case 'logout': handleLogout(); break;
+        case 'getUserProfile': if ($method == 'GET') handleGetUserProfile($conn); break;
+        case 'updateUserProfile': if ($method == 'POST') handleUpdateUserProfile($conn); break;
+        case 'getCart': handleGetCart($conn); break;
+        case 'addToCart': if ($method == 'POST') handleAddToCart($conn); break;
+        case 'updateCart': if ($method == 'POST') handleUpdateCart($conn); break;
+        case 'removeFromCart': if ($method == 'POST') handleRemoveFromCart($conn); break;
+        case 'placeOrder': if ($method == 'POST') handlePlaceOrder($conn); break;
+        default:
+            http_response_code(404);
+            echo json_encode(['error' => 'Aktion nicht gefunden']);
+            break;
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Ein serverseitiger Fehler ist aufgetreten: ' . $e->getMessage()]);
 }
+
 
 $conn->close();
 
@@ -62,7 +70,7 @@ function isUserLoggedIn() {
 }
 
 function handleGetProducts($conn) {
-    $sql = "SELECT id, name, description, price, image_url FROM products";
+    $sql = "SELECT id, name, description, price, image_url, product_id as productId FROM products";
     $result = $conn->query($sql);
     $products = [];
     if ($result && $result->num_rows > 0) {
@@ -130,7 +138,7 @@ function handleGetUserProfile($conn) {
         return;
     }
     $userId = $_SESSION['user_id'];
-    $stmt = $conn->prepare("SELECT firstname, lastname, email, street, house_nr, zip, city FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT firstname, lastname, email, street, house_nr, zip, city, shipping_street, shipping_house_nr, shipping_zip, shipping_city FROM users WHERE id = ?");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -158,6 +166,11 @@ function handleUpdateUserProfile($conn) {
     $house_nr = $data['house_nr'] ?? '';
     $zip = $data['zip'] ?? '';
     $city = $data['city'] ?? '';
+    $shipping_street = $data['shipping_street'] ?? '';
+    $shipping_house_nr = $data['shipping_house_nr'] ?? '';
+    $shipping_zip = $data['shipping_zip'] ?? '';
+    $shipping_city = $data['shipping_city'] ?? '';
+
 
     if (empty($firstname) || empty($lastname)) {
         http_response_code(400);
@@ -165,8 +178,8 @@ function handleUpdateUserProfile($conn) {
         return;
     }
 
-    $stmt = $conn->prepare("UPDATE users SET firstname=?, lastname=?, street=?, house_nr=?, zip=?, city=? WHERE id=?");
-    $stmt->bind_param("ssssssi", $firstname, $lastname, $street, $house_nr, $zip, $city, $userId);
+    $stmt = $conn->prepare("UPDATE users SET firstname=?, lastname=?, street=?, house_nr=?, zip=?, city=?, shipping_street=?, shipping_house_nr=?, shipping_zip=?, shipping_city=? WHERE id=?");
+    $stmt->bind_param("ssssssssssi", $firstname, $lastname, $street, $house_nr, $zip, $city, $shipping_street, $shipping_house_nr, $shipping_zip, $shipping_city, $userId);
 
     if ($stmt->execute()) {
         $_SESSION['user_firstname'] = $firstname;
@@ -226,7 +239,7 @@ function handleGetCart($conn) {
     }
     if (!empty($cart_data)) {
         $product_ids = array_keys($cart_data);
-        $sql = "SELECT id, name, price, image_url FROM products WHERE id IN (" . implode(',', array_fill(0, count($product_ids), '?')) . ")";
+        $sql = "SELECT id, name, price, image_url, product_id as productId FROM products WHERE id IN (" . implode(',', array_fill(0, count($product_ids), '?')) . ")";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param(str_repeat('i', count($product_ids)), ...$product_ids);
         $stmt->execute();
@@ -326,7 +339,7 @@ function handlePlaceOrder($conn) {
     }
 
     if (isUserLoggedIn()) {
-        $stmt = $conn->prepare("SELECT firstname, lastname, email, street, house_nr, zip, city FROM users WHERE id = ?");
+        $stmt = $conn->prepare("SELECT firstname, lastname, email, street, house_nr, zip, city, shipping_street, shipping_house_nr, shipping_zip, shipping_city FROM users WHERE id = ?");
         $stmt->bind_param("i", $_SESSION['user_id']);
         $stmt->execute();
         $user_result = $stmt->get_result()->fetch_assoc();
@@ -340,7 +353,13 @@ function handlePlaceOrder($conn) {
 
         $customer_name = $user_result['firstname'] . ' ' . $user_result['lastname'];
         $customer_email = $user_result['email'];
-        $customer_address = "{$user_result['street']} {$user_result['house_nr']}, {$user_result['zip']} {$user_result['city']}";
+        $billing_address = "{$user_result['firstname']} {$user_result['lastname']}\n{$user_result['street']} {$user_result['house_nr']}\n{$user_result['zip']} {$user_result['city']}";
+
+        if (empty($user_result['shipping_street'])) {
+            $shipping_address = $billing_address;
+        } else {
+            $shipping_address = "{$user_result['firstname']} {$user_result['lastname']}\n{$user_result['shipping_street']} {$user_result['shipping_house_nr']}\n{$user_result['shipping_zip']} {$user_result['shipping_city']}";
+        }
     } else {
         // Guest user
         $firstname = $data['firstname'] ?? '';
@@ -351,46 +370,62 @@ function handlePlaceOrder($conn) {
         $zip = $data['zip'] ?? '';
         $city = $data['city'] ?? '';
 
+        $shipping_firstname = $data['shipping_firstname'] ?? '';
+        $shipping_lastname = $data['shipping_lastname'] ?? '';
+        $shipping_street = $data['shipping_street'] ?? '';
+        $shipping_housenr = $data['shipping_house_nr'] ?? '';
+        $shipping_zip = $data['shipping_zip'] ?? '';
+        $shipping_city = $data['shipping_city'] ?? '';
+
+
         if (empty($firstname) || empty($lastname) || !filter_var($customer_email, FILTER_VALIDATE_EMAIL) || empty($street) || empty($housenr) || empty($zip) || empty($city)) {
             http_response_code(400);
-            echo json_encode(['error' => 'Bitte füllen Sie alle erforderlichen Felder aus.']);
+            echo json_encode(['error' => 'Bitte füllen Sie alle erforderlichen Felder der Rechnungsadresse aus.']);
             return;
         }
         $customer_name = $firstname . ' ' . $lastname;
-        $customer_address = "$street $housenr, $zip $city";
+        $billing_address = "$firstname $lastname\n$street $housenr\n$zip $city";
+
+        if (empty($shipping_street)) {
+            $shipping_address = $billing_address;
+        } else {
+            if (empty($shipping_firstname) || empty($shipping_lastname) || empty($shipping_street) || empty($shipping_housenr) || empty($shipping_zip) || empty($shipping_city)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Bitte füllen Sie alle erforderlichen Felder der Lieferadresse aus.']);
+                return;
+            }
+            $shipping_address = "$shipping_firstname $shipping_lastname\n$shipping_street $shipping_housenr\n$shipping_zip $shipping_city";
+        }
+
     }
 
     $conn->begin_transaction();
-    try {
-        $user_id = isUserLoggedIn() ? $_SESSION['user_id'] : null;
-        $stmt = $conn->prepare("INSERT INTO orders (user_id, customer_name, customer_email, total_price, customer_address) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("isdss", $user_id, $customer_name, $customer_email, $totalPrice, $customer_address);
-        $stmt->execute();
-        $order_id = $conn->insert_id;
-        $stmt->close();
 
-        $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
-        foreach ($cartItems as $item) {
-            $stmt->bind_param("iiid", $order_id, $item['id'], $item['quantity'], $item['price']);
-            $stmt->execute();
-        }
-        $stmt->close();
-        if (isUserLoggedIn()) {
-            $stmt = $conn->prepare("DELETE FROM cart_items WHERE user_id = ?");
-            $stmt->bind_param("i", $_SESSION['user_id']);
-            $stmt->execute();
-            $stmt->close();
-        } else {
-            $_SESSION['cart'] = [];
-        }
-        $conn->commit();
-        sendOrderConfirmationEmail($customer_email, $customer_name, $order_id, $cartItems, $totalPrice);
-        echo json_encode(['success' => true, 'order_id' => $order_id]);
-    } catch (Exception $e) {
-        $conn->rollback();
-        http_response_code(500);
-        echo json_encode(['error' => 'Bestellung konnte nicht verarbeitet werden: ' . $e->getMessage()]);
+    $user_id = isUserLoggedIn() ? $_SESSION['user_id'] : null;
+    $stmt = $conn->prepare("INSERT INTO orders (user_id, customer_name, customer_email, total_price, customer_address, shipping_address) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isdsss", $user_id, $customer_name, $customer_email, $totalPrice, $billing_address, $shipping_address);
+    $stmt->execute();
+    $order_id = $conn->insert_id;
+    $stmt->close();
+
+    $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+    foreach ($cartItems as $item) {
+        $stmt->bind_param("iiid", $order_id, $item['id'], $item['quantity'], $item['price']);
+        $stmt->execute();
     }
+    $stmt->close();
+    if (isUserLoggedIn()) {
+        $stmt = $conn->prepare("DELETE FROM cart_items WHERE user_id = ?");
+        $stmt->bind_param("i", $_SESSION['user_id']);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        $_SESSION['cart'] = [];
+    }
+    $conn->commit();
+    sendOrderConfirmationEmail($customer_email, $customer_name, $order_id, $cartItems, $totalPrice, $billing_address, $shipping_address);
+    echo json_encode(['success' => true, 'order_id' => $order_id]);
+
 }
 
 
@@ -400,7 +435,7 @@ function getCartDataForProcessing($conn) {
     $cart_data = isUserLoggedIn() ? getDbCart($conn) : ($_SESSION['cart'] ?? []);
     if (!empty($cart_data)) {
         $product_ids = array_keys($cart_data);
-        $sql = "SELECT id, name, price FROM products WHERE id IN (" . implode(',', array_fill(0, count($product_ids), '?')) . ")";
+        $sql = "SELECT id, name, price, product_id as productId FROM products WHERE id IN (" . implode(',', array_fill(0, count($product_ids), '?')) . ")";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param(str_repeat('i', count($product_ids)), ...$product_ids);
         $stmt->execute();
@@ -427,7 +462,7 @@ function getDbCart($conn) {
     return $cart_data;
 }
 
-function sendOrderConfirmationEmail($email, $name, $order_id, $items, $total) {
+function sendOrderConfirmationEmail($email, $name, $order_id, $items, $total, $billing_address, $shipping_address) {
     global $deine_email, $dein_passwort, $dein_name;
     $mail = new PHPMailer(true);
     try {
@@ -445,12 +480,15 @@ function sendOrderConfirmationEmail($email, $name, $order_id, $items, $total) {
         $body = "<h1>Vielen Dank für Ihre Bestellung!</h1>";
         $body .= "<p>Hallo $name,</p>";
         $body .= "<p>wir haben Ihre Bestellung mit der Nummer #$order_id erhalten:</p>";
-        $body .= "<table border='1' cellpadding='5' cellspacing='0' style='width: 100%; border-collapse: collapse;'><tr><th style='text-align: left;'>Produkt</th><th>Menge</th><th style='text-align: right;'>Preis</th></tr>";
+        $body .= "<table border='1' cellpadding='5' cellspacing='0' style='width: 100%; border-collapse: collapse;'><tr><th style='text-align: left;'>Produkt-ID</th><th style='text-align: left;'>Produkt</th><th>Menge</th><th style='text-align: right;'>Preis</th></tr>";
         foreach ($items as $item) {
-            $body .= "<tr><td>" . $item['name'] . "</td><td style='text-align: center;'>" . $item['quantity'] . "</td><td style='text-align: right;'>" . number_format($item['price'] * $item['quantity'], 2, ',', '.') . " €</td></tr>";
+            $body .= "<tr><td>" . $item['productId'] . "</td><td>" . $item['name'] . "</td><td style='text-align: center;'>" . $item['quantity'] . "</td><td style='text-align: right;'>" . number_format($item['price'] * $item['quantity'], 2, ',', '.') . " €</td></tr>";
         }
         $body .= "</table>";
         $body .= "<p style='text-align: right;'><b>Gesamtsumme: " . number_format($total, 2, ',', '.') . " €</b></p>";
+        $body .= "<h3>Rechnungsadresse</h3><p>" . nl2br(htmlspecialchars($billing_address)) . "</p>";
+        $body .= "<h3>Lieferadresse</h3><p>" . nl2br(htmlspecialchars($shipping_address)) . "</p>";
+
         $mail->isHTML(true);
         $mail->Body = $body;
         $mail->AltBody = 'Vielen Dank für Ihre Bestellung! Ihre Bestellnummer ist #' . $order_id . '. Gesamtsumme: ' . number_format($total, 2, ',', '.') . ' €';

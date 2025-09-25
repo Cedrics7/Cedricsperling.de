@@ -32,6 +32,9 @@ export class ShopManager {
             this.authManager.showModal();
             this.authManager.toggleForms(true);
         });
+        document.getElementById('shippingSameAsBilling').addEventListener('change', (e) => {
+            document.getElementById('shippingAddressContainer').style.display = e.target.checked ? 'none' : 'block';
+        });
 
         this.loadCart();
     }
@@ -192,6 +195,8 @@ export class ShopManager {
 
     async handleGuestCheckout(e) {
         e.preventDefault();
+        const isSameAddress = document.getElementById('shippingSameAsBilling').checked;
+
         const orderData = {
             firstname: document.getElementById('guestFirstname').value,
             lastname: document.getElementById('guestLastname').value,
@@ -201,6 +206,22 @@ export class ShopManager {
             zip: document.getElementById('guestZip').value,
             city: document.getElementById('guestCity').value,
         };
+
+        if (isSameAddress) {
+            orderData.shipping_firstname = orderData.firstname;
+            orderData.shipping_lastname = orderData.lastname;
+            orderData.shipping_street = orderData.street;
+            orderData.shipping_house_nr = orderData.house_nr;
+            orderData.shipping_zip = orderData.zip;
+            orderData.shipping_city = orderData.city;
+        } else {
+            orderData.shipping_firstname = document.getElementById('shippingFirstname').value;
+            orderData.shipping_lastname = document.getElementById('shippingLastname').value;
+            orderData.shipping_street = document.getElementById('shippingStreet').value;
+            orderData.shipping_house_nr = document.getElementById('shippingHouseNr').value;
+            orderData.shipping_zip = document.getElementById('shippingZip').value;
+            orderData.shipping_city = document.getElementById('shippingCity').value;
+        }
         this.placeOrder(orderData);
     }
 
@@ -233,10 +254,10 @@ export class ShopManager {
                     <p class="cart-item__price">${(item.price * item.quantity).toFixed(2)} €</p>
                 </div>
                 <div class="cart-item__actions">
-                    <button class="btn--icon" data-product-id="${item.id}" data-action="decrease">-</button>
-                    <span>${item.quantity}</span>
-                    <button class="btn--icon" data-product-id="${item.id}" data-action="increase">+</button>
-                    <button class="btn--icon" data-product-id="${item.id}" data-action="remove"><i class="bi bi-trash"></i></button>
+                    <button class="btn--icon cart-action-btn" data-product-id="${item.id}" data-action="decrease"><i class="bi bi-dash-lg"></i></button>
+                    <span class="cart-item-quantity">${item.quantity}</span>
+                    <button class="btn--icon cart-action-btn" data-product-id="${item.id}" data-action="increase"><i class="bi bi-plus-lg"></i></button>
+                    <button class="btn--icon cart-action-btn" data-product-id="${item.id}" data-action="remove"><i class="bi bi-trash"></i></button>
                 </div>`;
                 this.cartItemsContainer.appendChild(itemEl);
                 total += item.price * item.quantity;

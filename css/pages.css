@@ -39,6 +39,45 @@
 #cartBtn.pop { animation: cartPop 0.4s ease-out; }
 @keyframes cartPop { 0% { transform: scale(1); box-shadow: 0 0 0 rgba(var(--color-accent-primary-rgb), 0); } 50% { transform: scale(1.25); box-shadow: 0 0 20px rgba(var(--color-accent-primary-rgb), 0.7); } 100% { transform: scale(1); box-shadow: 0 0 0 rgba(var(--color-accent-primary-rgb), 0); } }
 
+/* NEUE STYLES FÜR WARENKORB-BUTTONS */
+.cart-item__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.cart-action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    background-color: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-sec);
+    border-radius: var(--radius-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.cart-action-btn:hover {
+    background-color: var(--surface);
+    color: var(--text);
+    border-color: var(--text);
+}
+
+.cart-action-btn i {
+    pointer-events: none;
+}
+
+.cart-item-quantity {
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+    font-size: 1rem;
+}
+
 
 /* SCHACHRÄTSEL */
 .puzzle-controls { text-align: center; margin-bottom: 32px; }
