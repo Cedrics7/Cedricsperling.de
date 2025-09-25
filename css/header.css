@@ -18,11 +18,10 @@
 }
 
 /* AKTIONSKNÖPFE IM HEADER */
-.nav__actions, .shop__actions { display: flex; align-items: center; gap: 16px; }
+.nav__actions, .shop__actions { display: flex; align-items: center; gap: 0px; }
 .user-info {
     font-weight: 600;
     font-size: 0.9rem;
-    margin-left: auto; /* NEU: Schiebt das Element nach rechts */
     margin-right: 16px;
 }
 .shop__actions { display: none; }

@@ -259,6 +259,10 @@
             <form id="loginForm">
                 <div class="form-group"><label for="loginEmail">E-Mail</label><input type="email" id="loginEmail" class="form-control" required></div>
                 <div class="form-group"><label for="loginPassword">Passwort</label><input type="password" id="loginPassword" class="form-control" required></div>
+                <div class="form-group">
+                    <input type="checkbox" id="rememberMe" name="rememberMe">
+                    <label for="rememberMe">Angemeldet bleiben</label>
+                </div>
                 <button type="submit" class="btn btn--primary btn--full-width">Anmelden</button>
                 <p class="form-switch">Noch kein Konto? <a href="#" id="showRegister">Registrieren</a></p>
             </form>
@@ -362,8 +366,52 @@
             <a href="#" data-page="impressum">Impressum</a>
             <span>|</span>
             <a href="#" data-page="datenschutz">Datenschutz</a>
-        </div>
+            <span>|</span> <a href="#" id="cookie-settings-trigger">Cookie-Einstellungen</a> </div>
         <p class="footer__copyright">© 2025 Cedric Sperling. Alle Rechte vorbehalten.</p>
+    </div>
+</footer>
+
+    <div id="cookie-consent-banner" class="cookie-banner">
+        <div class="container cookie-banner__content">
+            <p>Wir verwenden Cookies, um Ihr Surferlebnis zu verbessern und die Funktionalität unserer Website zu gewährleisten. <a href="#" data-page="datenschutz">Mehr erfahren</a>.</p>
+            <div class="cookie-banner__actions">
+                <button id="cookie-accept-all" class="btn btn--primary">Alle akzeptieren</button>
+                <button id="cookie-customize" class="btn btn--outline">Anpassen</button>
+                <button id="cookie-reject-all" class="btn btn--outline">Nur Notwendige</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cookie-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="cookie-modal-close">×</button>
+            <h3 class="modal-title">Cookie-Einstellungen anpassen</h3>
+            <p class="modal-description">Wählen Sie aus, welche Arten von Cookies Sie auf unserer Website zulassen möchten.</p>
+            <form id="cookie-prefs-form">
+                <div class="cookie-pref-category">
+                    <input type="checkbox" id="cookie-necessary" checked disabled>
+                    <label for="cookie-necessary">
+                        <strong>Technisch Notwendige Cookies</strong>
+                        <p>Diese Cookies sind für die Grundfunktionen der Website unerlässlich und können nicht deaktiviert werden.</p>
+                    </label>
+                </div>
+                <div class="cookie-pref-category">
+                    <input type="checkbox" id="cookie-analytics" name="analytics">
+                    <label for="cookie-analytics">
+                        <strong>Analyse-Cookies</strong>
+                        <p>Diese Cookies helfen uns zu verstehen, wie Besucher mit der Website interagieren, indem sie Informationen anonym sammeln und auswerten.</p>
+                    </label>
+                </div>
+                <div class="cookie-pref-category">
+                    <input type="checkbox" id="cookie-marketing" name="marketing">
+                    <label for="cookie-marketing">
+                        <strong>Marketing-Cookies</strong>
+                        <p>Diese Cookies werden verwendet, um Besuchern relevante Anzeigen zu zeigen und die Effektivität von Marketingkampagnen zu messen.</p>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full-width">Einstellungen speichern</button>
+            </form>
+        </div>
     </div>
 </footer>
 

@@ -1,15 +1,12 @@
 <?php
-// api.php - FINALE KORRIGIERTE VERSION V3
-ini_set('display_errors', 0); // Fehler nicht direkt ausgeben
+// api.php - FINALE KORRIGIERTE VERSION V4 (mit funktionierendem "Angemeldet bleiben")
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
 
-// Setzt den Header sofort, um sicherzustellen, dass die Antwort als JSON interpretiert wird.
+// Session wird nicht mehr hier gestartet, sondern bei Bedarf in einer Funktion.
+
 header('Content-Type: application/json');
 
-// PHPMailer und Konfiguration für Bestell-E-Mails einbinden
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require 'PHPMailer/src/Exception.php';
@@ -30,17 +27,24 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8mb4");
 
-// --- API-Router (ruft die Funktionen unten auf) ---
+// --- Neue Hilfsfunktion für die Session ---
+function ensure_session_started() {
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
+}
+
+// --- API-Router ---
 $action = $_REQUEST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Haupt-Try-Catch-Block, um alle Fehler abzufangen und als JSON zurückzugeben
 try {
     switch ($action) {
         case 'getProducts': handleGetProducts($conn); break;
         case 'register': if ($method == 'POST') handleRegister($conn); break;
         case 'login': if ($method == 'POST') handleLogin($conn); break;
         case 'logout': handleLogout(); break;
+        case 'checkLoginState': if ($method == 'GET') handleCheckLoginState($conn); break; // Hinzugefügt
         case 'getUserProfile': if ($method == 'GET') handleGetUserProfile($conn); break;
         case 'updateUserProfile': if ($method == 'POST') handleUpdateUserProfile($conn); break;
         case 'getCart': handleGetCart($conn); break;
@@ -58,7 +62,6 @@ try {
     echo json_encode(['error' => 'Ein serverseitiger Fehler ist aufgetreten: ' . $e->getMessage()]);
 }
 
-
 $conn->close();
 
 // =================================================================
@@ -66,8 +69,61 @@ $conn->close();
 // =================================================================
 
 function isUserLoggedIn() {
+    ensure_session_started();
     return isset($_SESSION['user_id']);
 }
+
+function handleCheckLoginState($conn) {
+    ensure_session_started();
+    if (isUserLoggedIn()) {
+        echo json_encode(['loggedIn' => true, 'user_firstname' => $_SESSION['user_firstname']]);
+    } else {
+        echo json_encode(['loggedIn' => false]);
+    }
+}
+
+function handleLogin($conn) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $email = $data['email'] ?? '';
+    $password = $data['password'] ?? '';
+    $rememberMe = $data['rememberMe'] ?? false;
+
+    if ($rememberMe) {
+        // Setze die Lebenszeit des Session-Cookies auf 30 Tage
+        $lifetime = 60 * 60 * 24 * 30;
+        session_set_cookie_params($lifetime);
+    }
+
+    ensure_session_started();
+
+    $stmt = $conn->prepare("SELECT id, firstname, password_hash FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($user = $result->fetch_assoc()) {
+        if (password_verify($password, $user['password_hash'])) {
+            $guest_cart = $_SESSION['cart'] ?? [];
+
+            // Wichtig: ID neu generieren, um Session Fixation zu verhindern
+            session_regenerate_id(true);
+
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_firstname'] = $user['firstname'];
+
+            mergeGuestCart($conn, $guest_cart, $user['id']);
+            echo json_encode(['success' => 'Login erfolgreich.', 'user_firstname' => $user['firstname']]);
+        } else {
+            http_response_code(401);
+            echo json_encode(['error' => 'Falsches Passwort.']);
+        }
+    } else {
+        http_response_code(404);
+        echo json_encode(['error' => 'Benutzer nicht gefunden.']);
+    }
+    $stmt->close();
+}
+
 
 function handleGetProducts($conn) {
     $sql = "SELECT id, name, description, price, image_url, product_id as productId FROM products";
@@ -82,6 +138,7 @@ function handleGetProducts($conn) {
 }
 
 function handleRegister($conn) {
+    ensure_session_started();
     $data = json_decode(file_get_contents('php://input'), true);
     $firstname = $data['firstname'] ?? '';
     $lastname = $data['lastname'] ?? '';
@@ -104,32 +161,6 @@ function handleRegister($conn) {
     $stmt->close();
 }
 
-function handleLogin($conn) {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $email = $data['email'] ?? '';
-    $password = $data['password'] ?? '';
-    $stmt = $conn->prepare("SELECT id, firstname, password_hash FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    if ($user = $result->fetch_assoc()) {
-        if (password_verify($password, $user['password_hash'])) {
-            $guest_cart = $_SESSION['cart'] ?? [];
-            session_regenerate_id(true);
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_firstname'] = $user['firstname'];
-            mergeGuestCart($conn, $guest_cart, $user['id']);
-            echo json_encode(['success' => 'Login erfolgreich.', 'user_firstname' => $user['firstname']]);
-        } else {
-            http_response_code(401);
-            echo json_encode(['error' => 'Falsches Passwort.']);
-        }
-    } else {
-        http_response_code(404);
-        echo json_encode(['error' => 'Benutzer nicht gefunden.']);
-    }
-}
 
 function handleGetUserProfile($conn) {
     if (!isUserLoggedIn()) {
@@ -193,6 +224,7 @@ function handleUpdateUserProfile($conn) {
 
 
 function mergeGuestCart($conn, $guest_cart, $user_id) {
+    ensure_session_started();
     if (empty($guest_cart)) return;
     foreach ($guest_cart as $product_id => $quantity) {
         $check_stmt = $conn->prepare("SELECT quantity FROM cart_items WHERE user_id = ? AND product_id = ?");
@@ -218,11 +250,30 @@ function mergeGuestCart($conn, $guest_cart, $user_id) {
 }
 
 function handleLogout() {
+    ensure_session_started();
+
+    // 1. Alle Session-Variablen löschen
+    $_SESSION = [];
+
+    // 2. Das Session-Cookie beim Client löschen
+    // Dies geschieht, indem ein Cookie mit dem gleichen Namen,
+    // aber mit einem Verfallsdatum in der Vergangenheit gesendet wird.
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+
+    // 3. Zum Schluss die Session auf dem Server zerstören
     session_destroy();
+
     echo json_encode(['success' => 'Logout erfolgreich.']);
 }
 
 function handleGetCart($conn) {
+    ensure_session_started();
     $cartItems = [];
     $cart_data = [];
     if (isUserLoggedIn()) {
@@ -253,6 +304,7 @@ function handleGetCart($conn) {
 }
 
 function handleAddToCart($conn) {
+    ensure_session_started();
     $data = json_decode(file_get_contents('php://input'), true);
     $productId = $data['productId'] ?? 0;
     if ($productId <= 0) {
@@ -284,6 +336,7 @@ function handleAddToCart($conn) {
 }
 
 function handleUpdateCart($conn) {
+    ensure_session_started();
     $data = json_decode(file_get_contents('php://input'), true);
     $productId = $data['productId'] ?? 0;
     $quantity = $data['quantity'] ?? -1;
@@ -310,6 +363,7 @@ function handleUpdateCart($conn) {
 }
 
 function handleRemoveFromCart($conn) {
+    ensure_session_started();
     $data = json_decode(file_get_contents('php://input'), true);
     $productId = $data['productId'] ?? 0;
     if ($productId <= 0) {
@@ -329,6 +383,7 @@ function handleRemoveFromCart($conn) {
 }
 function handlePlaceOrder($conn) {
     global $deine_email, $dein_passwort, $dein_name;
+    ensure_session_started();
     $data = json_decode(file_get_contents('php://input'), true);
     list($cartItems, $totalPrice) = getCartDataForProcessing($conn);
 
@@ -361,7 +416,6 @@ function handlePlaceOrder($conn) {
             $shipping_address = "{$user_result['firstname']} {$user_result['lastname']}\n{$user_result['shipping_street']} {$user_result['shipping_house_nr']}\n{$user_result['shipping_zip']} {$user_result['shipping_city']}";
         }
     } else {
-        // Guest user
         $firstname = $data['firstname'] ?? '';
         $lastname = $data['lastname'] ?? '';
         $customer_email = $data['email'] ?? '';
@@ -430,6 +484,7 @@ function handlePlaceOrder($conn) {
 
 
 function getCartDataForProcessing($conn) {
+    ensure_session_started();
     $cartItems = [];
     $totalPrice = 0;
     $cart_data = isUserLoggedIn() ? getDbCart($conn) : ($_SESSION['cart'] ?? []);
@@ -451,6 +506,7 @@ function getCartDataForProcessing($conn) {
 }
 
 function getDbCart($conn) {
+    ensure_session_started();
     $cart_data = [];
     $stmt = $conn->prepare("SELECT product_id, quantity FROM cart_items WHERE user_id = ?");
     $stmt->bind_param("i", $_SESSION['user_id']);

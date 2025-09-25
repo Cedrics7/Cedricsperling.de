@@ -13,7 +13,7 @@ export class AuthManager {
         this.authBtn.addEventListener('click', () => this.showModal());
         this.profileBtn.addEventListener('click', () => this.showProfileModal());
         this.logoutBtn.addEventListener('click', () => this.logout());
-
+        this.checkLoginState();
         document.getElementById('authModalClose').addEventListener('click', () => this.hideModal());
         document.getElementById('profileModalClose').addEventListener('click', () => this.hideProfileModal());
 
@@ -73,7 +73,10 @@ export class AuthManager {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
-        const result = await this.apiCall('login', { email, password });
+        // Hier wird der Status der Checkbox ausgelesen
+        const rememberMe = document.getElementById('rememberMe').checked;
+        // Und hier an die API gesendet
+        const result = await this.apiCall('login', { email, password, rememberMe });
         if (result && result.success) {
             this.user = { firstname: result.user_firstname };
             this.updateUI();
@@ -81,6 +84,19 @@ export class AuthManager {
             window.app.shopManager.loadCart();
         }
     }
+
+    // Neue Funktion in AuthManager.js
+    async checkLoginState() {
+        const result = await this.apiCall('checkLoginState', null, 'GET');
+        if (result && result.loggedIn) {
+            this.user = { firstname: result.user_firstname };
+            this.updateUI();
+            window.app.shopManager.loadCart();
+        }
+    }
+
+
+
     async logout() {
         const result = await this.apiCall('logout', {});
         if (result && result.success) {

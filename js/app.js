@@ -4,6 +4,7 @@ import { InteractionManager } from './managers/InteractionManager.js';
 import { ChessPuzzleManager } from './managers/ChessPuzzleManager.js';
 import { AuthManager } from './managers/AuthManager.js';
 import { ShopManager } from './managers/ShopManager.js';
+import { CookieManager } from './managers/CookieManager.js';
 
 class App {
     constructor() {
@@ -17,6 +18,7 @@ class App {
             this.interactionManager = new InteractionManager();
             this.authManager = new AuthManager();
             this.shopManager = new ShopManager(this.authManager);
+            this.cookieManager = new CookieManager();
 
             // Defer Chess Puzzle Manager until jQuery and other scripts are ready
             $(document).ready(() => {
