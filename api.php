@@ -1,11 +1,12 @@
 <?php
-// api.php - FINALE, VOLLSTÄNDIGE VERSION
+// api.php - FINALE KORRIGIERTE VERSION
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+// PHPMailer und Konfiguration für Bestell-E-Mails einbinden
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require 'PHPMailer/src/Exception.php';
@@ -27,7 +28,7 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8mb4");
 
-// --- API-Router ---
+// --- API-Router (ruft die Funktionen unten auf) ---
 $action = $_REQUEST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 header('Content-Type: application/json');
@@ -37,6 +38,8 @@ switch ($action) {
     case 'register': if ($method == 'POST') handleRegister($conn); break;
     case 'login': if ($method == 'POST') handleLogin($conn); break;
     case 'logout': handleLogout(); break;
+    case 'getUserProfile': if ($method == 'GET') handleGetUserProfile($conn); break;
+    case 'updateUserProfile': if ($method == 'POST') handleUpdateUserProfile($conn); break;
     case 'getCart': handleGetCart($conn); break;
     case 'addToCart': if ($method == 'POST') handleAddToCart($conn); break;
     case 'updateCart': if ($method == 'POST') handleUpdateCart($conn); break;
@@ -119,6 +122,62 @@ function handleLogin($conn) {
         echo json_encode(['error' => 'Benutzer nicht gefunden.']);
     }
 }
+
+function handleGetUserProfile($conn) {
+    if (!isUserLoggedIn()) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Nicht angemeldet.']);
+        return;
+    }
+    $userId = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT firstname, lastname, email, street, house_nr, zip, city FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($user = $result->fetch_assoc()) {
+        echo json_encode(['success' => true, 'user' => $user]);
+    } else {
+        http_response_code(404);
+        echo json_encode(['error' => 'Benutzer nicht gefunden.']);
+    }
+    $stmt->close();
+}
+
+function handleUpdateUserProfile($conn) {
+    if (!isUserLoggedIn()) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Nicht angemeldet.']);
+        return;
+    }
+    $userId = $_SESSION['user_id'];
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $firstname = $data['firstname'] ?? '';
+    $lastname = $data['lastname'] ?? '';
+    $street = $data['street'] ?? '';
+    $house_nr = $data['house_nr'] ?? '';
+    $zip = $data['zip'] ?? '';
+    $city = $data['city'] ?? '';
+
+    if (empty($firstname) || empty($lastname)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Vor- und Nachname sind Pflichtfelder.']);
+        return;
+    }
+
+    $stmt = $conn->prepare("UPDATE users SET firstname=?, lastname=?, street=?, house_nr=?, zip=?, city=? WHERE id=?");
+    $stmt->bind_param("ssssssi", $firstname, $lastname, $street, $house_nr, $zip, $city, $userId);
+
+    if ($stmt->execute()) {
+        $_SESSION['user_firstname'] = $firstname;
+        echo json_encode(['success' => true]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Profil konnte nicht aktualisiert werden.']);
+    }
+    $stmt->close();
+}
+
 
 function mergeGuestCart($conn, $guest_cart, $user_id) {
     if (empty($guest_cart)) return;
@@ -255,39 +314,61 @@ function handleRemoveFromCart($conn) {
     }
     echo json_encode(['success' => 'Produkt entfernt.']);
 }
-
 function handlePlaceOrder($conn) {
+    global $deine_email, $dein_passwort, $dein_name;
     $data = json_decode(file_get_contents('php://input'), true);
-    $customer_name = $data['name'] ?? 'Gast';
-    $customer_email = $data['email'] ?? '';
     list($cartItems, $totalPrice) = getCartDataForProcessing($conn);
+
     if (empty($cartItems)) {
         http_response_code(400);
         echo json_encode(['error' => 'Ihr Warenkorb ist leer.']);
         return;
     }
-    if (!isUserLoggedIn() && !filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Bitte geben Sie eine gültige E-Mail-Adresse an.']);
-        return;
-    }
+
     if (isUserLoggedIn()) {
-        $stmt = $conn->prepare("SELECT firstname, lastname, email FROM users WHERE id = ?");
+        $stmt = $conn->prepare("SELECT firstname, lastname, email, street, house_nr, zip, city FROM users WHERE id = ?");
         $stmt->bind_param("i", $_SESSION['user_id']);
         $stmt->execute();
         $user_result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (empty($user_result['street']) || empty($user_result['zip']) || empty($user_result['city'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Bitte vervollständigen Sie Ihre Adresse im Profil.']);
+            return;
+        }
+
         $customer_name = $user_result['firstname'] . ' ' . $user_result['lastname'];
         $customer_email = $user_result['email'];
-        $stmt->close();
+        $customer_address = "{$user_result['street']} {$user_result['house_nr']}, {$user_result['zip']} {$user_result['city']}";
+    } else {
+        // Guest user
+        $firstname = $data['firstname'] ?? '';
+        $lastname = $data['lastname'] ?? '';
+        $customer_email = $data['email'] ?? '';
+        $street = $data['street'] ?? '';
+        $housenr = $data['house_nr'] ?? '';
+        $zip = $data['zip'] ?? '';
+        $city = $data['city'] ?? '';
+
+        if (empty($firstname) || empty($lastname) || !filter_var($customer_email, FILTER_VALIDATE_EMAIL) || empty($street) || empty($housenr) || empty($zip) || empty($city)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Bitte füllen Sie alle erforderlichen Felder aus.']);
+            return;
+        }
+        $customer_name = $firstname . ' ' . $lastname;
+        $customer_address = "$street $housenr, $zip $city";
     }
+
     $conn->begin_transaction();
     try {
         $user_id = isUserLoggedIn() ? $_SESSION['user_id'] : null;
-        $stmt = $conn->prepare("INSERT INTO orders (user_id, customer_name, customer_email, total_price) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("issd", $user_id, $customer_name, $customer_email, $totalPrice);
+        $stmt = $conn->prepare("INSERT INTO orders (user_id, customer_name, customer_email, total_price, customer_address) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("isdss", $user_id, $customer_name, $customer_email, $totalPrice, $customer_address);
         $stmt->execute();
         $order_id = $conn->insert_id;
         $stmt->close();
+
         $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
         foreach ($cartItems as $item) {
             $stmt->bind_param("iiid", $order_id, $item['id'], $item['quantity'], $item['price']);
@@ -311,6 +392,7 @@ function handlePlaceOrder($conn) {
         echo json_encode(['error' => 'Bestellung konnte nicht verarbeitet werden: ' . $e->getMessage()]);
     }
 }
+
 
 function getCartDataForProcessing($conn) {
     $cartItems = [];
@@ -377,4 +459,5 @@ function sendOrderConfirmationEmail($email, $name, $order_id, $items, $total) {
         error_log("Confirmation mail for order #$order_id to $email failed: " . $mail->ErrorInfo);
     }
 }
+
 ?>

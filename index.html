@@ -48,6 +48,9 @@
             <button class="nav__action-btn" id="authBtn" aria-label="Anmelden/Konto">
                 <i class="bi bi-person-circle"></i>
             </button>
+            <button class="nav__action-btn" id="profileBtn" aria-label="Profil bearbeiten" style="display: none;">
+                <i class="bi bi-person-gear"></i>
+            </button>
             <button class="nav__action-btn" id="logoutBtn" aria-label="Abmelden" style="display: none;">
                 <i class="bi bi-box-arrow-right"></i>
             </button>
@@ -285,6 +288,44 @@
         <button class="btn btn--primary btn--full-width" id="checkoutBtn" style="display: none;">Zur Kasse</button>
     </div>
 </div>
+
+<div class="modal" id="guestCheckoutModal">
+    <div class="modal-content">
+        <button class="modal-close" id="guestCheckoutModalClose">×</button>
+        <h3 class="modal-title">Als Gast bestellen</h3>
+        <p>Sie haben bereits ein Konto? <a href="#" id="switchToLogin">Anmelden</a> oder <a href="#" id="switchToRegister">Registrieren</a></p>
+        <form id="guestCheckoutForm">
+            <div class="form-group"><label for="guestFirstname">Vorname</label><input type="text" id="guestFirstname" class="form-control" required></div>
+            <div class="form-group"><label for="guestLastname">Nachname</label><input type="text" id="guestLastname" class="form-control" required></div>
+            <div class="form-group"><label for="guestEmail">E-Mail</label><input type="email" id="guestEmail" class="form-control" required></div>
+            <div class="form-group"><label for="guestStreet">Straße</label><input type="text" id="guestStreet" class="form-control" required></div>
+            <div class="form-group"><label for="guestHouseNr">Hausnummer</label><input type="text" id="guestHouseNr" class="form-control" required></div>
+            <div class="form-group"><label for="guestZip">PLZ</label><input type="text" id="guestZip" class="form-control" required></div>
+            <div class="form-group"><label for="guestCity">Ort</label><input type="text" id="guestCity" class="form-control" required></div>
+            <button type="submit" class="btn btn--primary btn--full-width">Als Gast bestellen</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="profileModal">
+    <div class="modal-content">
+        <button class="modal-close" id="profileModalClose">×</button>
+        <h3 class="modal-title">Profil bearbeiten</h3>
+        <form id="profileForm">
+            <div class="form-group"><label for="profileFirstname">Vorname</label><input type="text" id="profileFirstname" class="form-control" required></div>
+            <div class="form-group"><label for="profileLastname">Nachname</label><input type="text" id="profileLastname" class="form-control" required></div>
+            <div class="form-group"><label for="profileEmail">E-Mail</label><input type="email" id="profileEmail" class="form-control" disabled></div>
+            <hr>
+            <h4 class="modal-subtitle">Lieferadresse</h4>
+            <div class="form-group"><label for="profileStreet">Straße</label><input type="text" id="profileStreet" class="form-control"></div>
+            <div class="form-group"><label for="profileHouseNr">Hausnummer</label><input type="text" id="profileHouseNr" class="form-control"></div>
+            <div class="form-group"><label for="profileZip">PLZ</label><input type="text" id="profileZip" class="form-control"></div>
+            <div class="form-group"><label for="profileCity">Ort</label><input type="text" id="profileCity" class="form-control"></div>
+            <button type="submit" class="btn btn--primary btn--full-width">Änderungen speichern</button>
+        </form>
+    </div>
+</div>
+
 
 <footer class="footer">
     <div class="container">

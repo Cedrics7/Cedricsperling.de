@@ -264,34 +264,54 @@ class AuthManager {
     constructor() {
         this.user = null;
         this.authModal = document.getElementById('authModal');
+        this.profileModal = document.getElementById('profileModal');
         this.authBtn = document.getElementById('authBtn');
+        this.profileBtn = document.getElementById('profileBtn');
         this.logoutBtn = document.getElementById('logoutBtn');
         this.userInfo = document.getElementById('userInfo');
         this.init();
     }
     init() {
         this.authBtn.addEventListener('click', () => this.showModal());
+        this.profileBtn.addEventListener('click', () => this.showProfileModal());
         this.logoutBtn.addEventListener('click', () => this.logout());
+
         document.getElementById('authModalClose').addEventListener('click', () => this.hideModal());
+        document.getElementById('profileModalClose').addEventListener('click', () => this.hideProfileModal());
+
         document.getElementById('showRegister').addEventListener('click', (e) => { e.preventDefault(); this.toggleForms(true); });
         document.getElementById('showLogin').addEventListener('click', (e) => { e.preventDefault(); this.toggleForms(false); });
+
         document.getElementById('loginForm').addEventListener('submit', (e) => this.login(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.register(e));
+        document.getElementById('profileForm').addEventListener('submit', (e) => this.updateProfile(e));
     }
+
     showModal() { this.authModal.style.display = 'block'; }
     hideModal() { this.authModal.style.display = 'none'; }
+    showProfileModal() { this.profileModal.style.display = 'block'; this.loadProfile(); }
+    hideProfileModal() { this.profileModal.style.display = 'none'; }
+
     toggleForms(showRegister) {
         document.getElementById('loginFormContainer').style.display = showRegister ? 'none' : 'block';
         document.getElementById('registerFormContainer').style.display = showRegister ? 'block' : 'none';
     }
-    async apiCall(action, data) {
+
+    async apiCall(action, data, method = 'POST') {
         try {
-            const response = await fetch(`api.php?action=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const options = {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+            };
+            if (method === 'POST') {
+                options.body = JSON.stringify(data);
+            }
+            const response = await fetch(`api.php?action=${action}`, options);
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Ein Fehler ist aufgetreten.');
             return result;
         } catch (error) {
-            alert(`Fehler: ${error.message}`);
+            this.showToast(`Fehler: ${error.message}`, 'error');
             return null;
         }
     }
@@ -303,7 +323,7 @@ class AuthManager {
         const lastname = document.getElementById('registerLastname').value;
         const result = await this.apiCall('register', { email, password, firstname, lastname });
         if (result) {
-            alert('Registrierung erfolgreich! Bitte melden Sie sich jetzt an.');
+            this.showToast('Registrierung erfolgreich! Bitte melden Sie sich jetzt an.', 'success');
             this.toggleForms(false);
         }
     }
@@ -327,16 +347,69 @@ class AuthManager {
             app.shopManager.clearCart();
         }
     }
+
+    async loadProfile() {
+        const result = await this.apiCall('getUserProfile', null, 'GET');
+        if (result && result.success) {
+            const user = result.user;
+            document.getElementById('profileFirstname').value = user.firstname || '';
+            document.getElementById('profileLastname').value = user.lastname || '';
+            document.getElementById('profileEmail').value = user.email || '';
+            document.getElementById('profileStreet').value = user.street || '';
+            document.getElementById('profileHouseNr').value = user.house_nr || '';
+            document.getElementById('profileZip').value = user.zip || '';
+            document.getElementById('profileCity').value = user.city || '';
+        }
+    }
+
+    async updateProfile(e) {
+        e.preventDefault();
+        const data = {
+            firstname: document.getElementById('profileFirstname').value,
+            lastname: document.getElementById('profileLastname').value,
+            street: document.getElementById('profileStreet').value,
+            house_nr: document.getElementById('profileHouseNr').value,
+            zip: document.getElementById('profileZip').value,
+            city: document.getElementById('profileCity').value
+        };
+        const result = await this.apiCall('updateUserProfile', data);
+        if (result && result.success) {
+            this.showToast('Profil erfolgreich aktualisiert!', 'success');
+            this.hideProfileModal();
+            this.userInfo.textContent = `Hallo, ${data.firstname}`;
+        }
+    }
+
     updateUI() {
         if (this.user) {
             this.userInfo.textContent = `Hallo, ${this.user.firstname}`;
             this.authBtn.style.display = 'none';
+            this.profileBtn.style.display = 'block';
             this.logoutBtn.style.display = 'block';
         } else {
             this.userInfo.textContent = '';
             this.authBtn.style.display = 'block';
+            this.profileBtn.style.display = 'none';
             this.logoutBtn.style.display = 'none';
         }
+    }
+
+    showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('toast--visible');
+        }, 50);
+
+        setTimeout(() => {
+            toast.classList.remove('toast--visible');
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
     }
 }
 
@@ -354,7 +427,7 @@ class App {
 
             new ChessPuzzleManager();
             this.authManager = new AuthManager();
-            this.shopManager = new ShopManager();
+            this.shopManager = new ShopManager(this.authManager);
         } catch (error) {
             console.error('Error initializing website:', error);
         }
@@ -363,9 +436,11 @@ class App {
 
 // Shop Management
 class ShopManager {
-    constructor() {
+    constructor(authManager) {
+        this.authManager = authManager;
         this.shopGrid = document.getElementById('shopGrid');
         this.cartModal = document.getElementById('cartModal');
+        this.guestCheckoutModal = document.getElementById('guestCheckoutModal');
         this.cartBtn = document.getElementById('cartBtn');
         this.cartCounter = document.getElementById('cartCounter');
         this.cartItemsContainer = document.getElementById('cartItemsContainer');
@@ -379,12 +454,29 @@ class ShopManager {
         await this.loadProducts();
         this.cartBtn.addEventListener('click', () => this.showCart());
         document.getElementById('cartModalClose').addEventListener('click', () => this.hideCart());
+        document.getElementById('guestCheckoutModalClose').addEventListener('click', () => this.hideGuestCheckout());
         this.checkoutBtn.addEventListener('click', () => this.checkout());
+        document.getElementById('guestCheckoutForm').addEventListener('submit', (e) => this.handleGuestCheckout(e));
+        document.getElementById('switchToLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.hideGuestCheckout();
+            this.authManager.showModal();
+            this.authManager.toggleForms(false);
+        });
+        document.getElementById('switchToRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.hideGuestCheckout();
+            this.authManager.showModal();
+            this.authManager.toggleForms(true);
+        });
+
         this.loadCart();
     }
-
     showCart() { this.cartModal.style.display = 'block'; }
     hideCart() { this.cartModal.style.display = 'none'; }
+    showGuestCheckout() { this.guestCheckoutModal.style.display = 'block'; }
+    hideGuestCheckout() { this.guestCheckoutModal.style.display = 'none'; }
+
 
     async loadProducts() {
         if (!this.shopGrid) return;
@@ -408,7 +500,6 @@ class ShopManager {
         products.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
-            // ACHTUNG: Der onclick-Aufruf wird hier entfernt und durch einen Event-Listener ersetzt
             productCard.innerHTML = `
                 <img src="${product.image_url}" alt="${product.name}" class="product-card__image">
                 <h3 class="product-card__title">${product.name}</h3>
@@ -421,7 +512,6 @@ class ShopManager {
             this.shopGrid.appendChild(productCard);
         });
 
-        // Event-Listener für alle "In den Warenkorb"-Buttons hinzufügen
         document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 const productId = event.target.dataset.productId;
@@ -431,7 +521,6 @@ class ShopManager {
     }
 
     async addToCart(productId, buttonElement) {
-        // 1. Animation starten
         const productCard = buttonElement.closest('.product-card');
         if (productCard) {
             const productImage = productCard.querySelector('.product-card__image');
@@ -440,7 +529,6 @@ class ShopManager {
             }
         }
 
-        // 2. Produkt zum Warenkorb hinzufügen (ohne alert)
         try {
             const response = await fetch('api.php?action=addToCart', {
                 method: 'POST',
@@ -448,7 +536,7 @@ class ShopManager {
                 body: JSON.stringify({ productId })
             });
             if (response.ok) {
-                this.loadCart(); // Warenkorb im Hintergrund aktualisieren
+                this.loadCart();
             } else {
                 const result = await response.json();
                 console.error('Fehler:', result.error);
@@ -486,13 +574,11 @@ class ShopManager {
 
         setTimeout(() => {
             document.body.removeChild(flyingEl);
-            // NEU: Fügt den Pop-Effekt hinzu, anstatt nur zu schütteln
             cartIcon.classList.add('pop');
             setTimeout(() => cartIcon.classList.remove('pop'), 400);
         }, 850);
     }
 
-    // Die restlichen Funktionen (updateCart, removeFromCart, checkout, etc.) bleiben unverändert
     async updateCart(productId, quantity) {
         try {
             await fetch('api.php?action=updateCart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId, quantity }) });
@@ -512,41 +598,49 @@ class ShopManager {
     }
 
     async checkout() {
-        let orderData = {};
-        // Wenn der User nicht eingeloggt ist, frage nach Name und E-Mail
-        if (!app.authManager.user) {
-            const name = prompt("Bitte geben Sie Ihren Namen ein:", "");
-            const email = prompt("Bitte geben Sie Ihre E-Mail-Adresse für die Bestätigung ein:", "");
-            if (name === null || email === null || name === "" || email === "") {
-                alert("Bestellvorgang abgebrochen.");
-                return;
-            }
-            orderData.name = name;
-            orderData.email = email;
-        }
-
-        try {
-            const response = await fetch('api.php?action=placeOrder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
-
-            if (!response.ok) {
-                const result = await response.json();
-                throw new Error(result.error || 'Ein Fehler ist aufgetreten.');
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                alert(`Vielen Dank für Ihre Bestellung! Ihre Bestellnummer ist #${result.order_id}. Eine Bestätigung wurde an Ihre E-Mail-Adresse gesendet.`);
-                this.clearCart();
+        if (this.authManager.user) {
+            // For logged-in user, check for address first
+            const profile = await this.authManager.apiCall('getUserProfile', null, 'GET');
+            if (profile && profile.success && profile.user.street && profile.user.city) {
+                // Address exists, place order directly
+                this.placeOrder();
+            } else {
+                // Address does not exist, prompt to update profile
+                this.authManager.showToast('Bitte vervollständigen Sie Ihre Adresse im Profil.', 'error');
                 this.hideCart();
+                this.authManager.showProfileModal();
             }
-        } catch (error) {
-            alert(`Fehler bei der Bestellung: ${error.message}`);
+        } else {
+            // Guest checkout
+            this.hideCart();
+            this.showGuestCheckout();
         }
     }
+
+    async placeOrder(orderData = {}) {
+        const result = await this.authManager.apiCall('placeOrder', orderData);
+        if (result && result.success) {
+            this.authManager.showToast(`Bestellung #${result.order_id} erfolgreich! Eine Bestätigung wurde gesendet.`, 'success');
+            this.clearCart();
+            this.hideCart();
+            this.hideGuestCheckout();
+        }
+    }
+
+    async handleGuestCheckout(e) {
+        e.preventDefault();
+        const orderData = {
+            firstname: document.getElementById('guestFirstname').value,
+            lastname: document.getElementById('guestLastname').value,
+            email: document.getElementById('guestEmail').value,
+            street: document.getElementById('guestStreet').value,
+            house_nr: document.getElementById('guestHouseNr').value,
+            zip: document.getElementById('guestZip').value,
+            city: document.getElementById('guestCity').value,
+        };
+        this.placeOrder(orderData);
+    }
+
 
     async loadCart() {
         try {
@@ -557,12 +651,10 @@ class ShopManager {
         } catch (error) { console.error(error.message); }
     }
 
-// Ersetze die renderCart-Funktion in app.js
-
     renderCart() {
         this.cartItemsContainer.innerHTML = '';
         let total = 0;
-        let totalItems = 0; // Zähler für die Gesamtanzahl der Artikel
+        let totalItems = 0;
 
         if (this.cart.length === 0) {
             this.cartItemsContainer.innerHTML = '<p>Ihr Warenkorb ist leer.</p>';
@@ -585,14 +677,13 @@ class ShopManager {
                 </div>`;
                 this.cartItemsContainer.appendChild(itemEl);
                 total += item.price * item.quantity;
-                totalItems += item.quantity; // Addiere die Menge jedes Artikels
+                totalItems += item.quantity;
             });
             this.checkoutBtn.style.display = 'block';
         }
 
         this.cartTotalEl.textContent = total.toFixed(2);
 
-        // Zähler aktualisieren
         if (totalItems > 0) {
             this.cartCounter.textContent = totalItems;
             this.cartCounter.classList.remove('hidden');

@@ -175,11 +175,11 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .footer__copyright { font-size: 0.9rem; }
 
 /* Links in Inhaltsboxen */
-.content-box a, .impressum a, .legal-content a {
+.content-box a, .impressum a, .legal-content a, #guestCheckoutModal a {
   color: var(--color-accent-secondary); font-weight: 600; text-decoration: underline;
   text-decoration-thickness: 1px; text-underline-offset: 3px; transition: color 0.3s ease;
 }
-.content-box a:hover, .impressum a:hover, .legal-content a:hover { color: var(--color-accent-primary); }
+.content-box a:hover, .impressum a:hover, .legal-content a:hover, #guestCheckoutModal a:hover { color: var(--color-accent-primary); }
 
 /* RECHTSTEXTE */
 .legal-content { max-width: 800px; margin: 32px auto; text-align: left; }
@@ -369,6 +369,7 @@ body[data-color-scheme="light"] .theme-icon--moon { opacity: 0; transform: trans
 .user-info {
   font-weight: 600;
   font-size: 0.9rem;
+  margin-right: 16px; /* Abstand zum nächsten Element */
 }
 /* Sichtbarkeit der Header-Buttons steuern */
 body.shop-active .nav__actions {
@@ -523,3 +524,27 @@ body.shop-active .shop__actions {
   transform: scale(0);
 }
 
+/* --- TOAST NOTIFICATIONS --- */
+.toast {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  border-radius: var(--radius-base);
+  font-weight: 600;
+  z-index: 3000;
+  transition: bottom 0.5s var(--ease-standard);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.toast--success {
+  background-color: #28a745;
+  color: white;
+}
+.toast--error {
+  background-color: #dc3545;
+  color: white;
+}
+.toast--visible {
+  bottom: 30px;
+}
