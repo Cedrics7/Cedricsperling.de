@@ -10,6 +10,7 @@ export class CookieManager {
         this.closeModalBtn = document.getElementById('cookie-modal-close');
         this.prefsForm = document.getElementById('cookie-prefs-form');
         this.settingsTrigger = document.getElementById('cookie-settings-trigger');
+        this.settingsTriggerDatenschutz = document.getElementById('cookie-settings-trigger-datenschutz');
 
         this.consentCookieName = 'user_cookie_consent';
         this.init();
@@ -19,7 +20,6 @@ export class CookieManager {
         const consent = this.getCookie(this.consentCookieName);
         if (consent) {
             this.banner.style.display = 'none';
-            // Skripte basierend auf gespeicherter Einwilligung laden
             this.loadScripts(consent);
         } else {
             setTimeout(() => this.showBanner(), 500);
@@ -33,6 +33,12 @@ export class CookieManager {
 
         if (this.settingsTrigger) {
             this.settingsTrigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showModal();
+            });
+        }
+        if (this.settingsTriggerDatenschutz) {
+            this.settingsTriggerDatenschutz.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.showModal();
             });
@@ -75,7 +81,6 @@ export class CookieManager {
     }
 
     showModal() {
-        // Lade die aktuellen Einstellungen ins Modal, bevor es angezeigt wird
         const consent = this.getCookie(this.consentCookieName) || {};
         document.getElementById('cookie-functional').checked = !!consent.functional;
         document.getElementById('cookie-analytics').checked = !!consent.analytics;
@@ -101,6 +106,9 @@ export class CookieManager {
     }
 
     rejectAll() {
+        const oldConsent = this.getCookie(this.consentCookieName);
+        const hadFunctionalConsent = oldConsent && oldConsent.functional;
+
         const prefs = {
             necessary: true,
             functional: false,
@@ -111,10 +119,18 @@ export class CookieManager {
         this.setCookie(this.consentCookieName, prefs, 365);
         this.hideBanner();
         this.loadScripts(prefs);
+
+        if (hadFunctionalConsent && window.app.authManager.user) {
+            window.app.authManager.logout();
+            window.app.authManager.showToast('Sie wurden abgemeldet, da funktionale Cookies deaktiviert wurden.', 'info');
+        }
     }
 
     savePreferences(e) {
         e.preventDefault();
+        const oldConsent = this.getCookie(this.consentCookieName);
+        const hadFunctionalConsent = oldConsent && oldConsent.functional;
+
         const prefs = {
             necessary: true,
             functional: document.getElementById('cookie-functional').checked,
@@ -122,15 +138,23 @@ export class CookieManager {
             marketing: document.getElementById('cookie-marketing').checked,
             timestamp: new Date().toISOString()
         };
+
+        const hasRevokedFunctionalConsent = hadFunctionalConsent && !prefs.functional;
+
         this.setCookie(this.consentCookieName, prefs, 365);
         this.hideBanner();
         this.hideModal();
         this.loadScripts(prefs);
+
+        if (hasRevokedFunctionalConsent && window.app.authManager.user) {
+            window.app.authManager.logout();
+            window.app.authManager.showToast('Sie wurden abgemeldet, da Sie die funktionalen Cookies deaktiviert haben.', 'info');
+        }
     }
 
     hasConsent(category) {
         const consent = this.getCookie(this.consentCookieName);
-        return consent && consent[category];
+        return !!(consent && consent[category]);
     }
 
     loadScripts(prefs) {
