@@ -7,6 +7,7 @@ export class ChessPuzzleManager {
         this.statusElement = $('.puzzle-status');
         this.solutionBtn = $('#showSolutionBtn');
         this.dailyPuzzleButton = $('#dailyPuzzleBtn');
+        this.initialLoadDone = false;
         this.init();
     }
 
@@ -22,7 +23,11 @@ export class ChessPuzzleManager {
             const observer = new MutationObserver((mutationsList) => {
                 for (const mutation of mutationsList) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        if (mutation.target.classList.contains('page--active') && this.board) {
+                        const isActive = mutation.target.classList.contains('page--active');
+                        if (isActive && !this.initialLoadDone) {
+                            this.fetcher('https://lichess.org/api/puzzle/daily');
+                            this.initialLoadDone = true;
+                        } else if (isActive && this.board) {
                             setTimeout(() => this.board.resize(), 50);
                         }
                     }
@@ -30,13 +35,11 @@ export class ChessPuzzleManager {
             });
             observer.observe(puzzlePage, { attributes: true });
         }
-        this.dailyPuzzleButton.click();
     }
 
     async fetcher(url) {
         this.statusElement.text('Lade neues Rätsel...');
         this.solutionBtn.hide();
-        if (this.board) this.board.destroy();
         try {
             const response = await fetch(url);
             if (!response.ok) throw new Error('Netzwerk-Antwort war nicht OK');
@@ -44,17 +47,35 @@ export class ChessPuzzleManager {
             this.setupPuzzle(data);
         } catch (error) {
             this.statusElement.text('Fehler: Rätsel konnte nicht geladen werden.');
+            console.error('Fehler beim Abrufen des Rätsels:', error);
         }
     }
 
     setupPuzzle(data) {
-        if (!data || !data.game || (!data.game.fen && !data.game.pgn)) {
-            this.statusElement.text('Fehler: Ungültige Rätsel-Daten erhalten.');
+        if (!data?.game?.pgn || !data?.puzzle?.solution) {
+            this.statusElement.text('Fehler: Ungültige Rätseldaten erhalten.');
+            console.error("Ungültige oder unvollständige Rätseldaten empfangen:", data);
             return;
         }
-        this.game.load(data.game.fen || data.game.pgn);
+
+        const tempGame = new Chess();
+        if (!tempGame.load_pgn(data.game.pgn)) {
+            this.statusElement.text('Fehler: PGN-Daten konnten nicht verarbeitet werden.');
+            return;
+        }
+
+        const solution = data.puzzle.solution;
+        for (let i = 0; i < solution.length; i++) {
+            tempGame.undo();
+        }
+
+        // **ENTSCHEIDENDE ÄNDERUNG:** Speichere die FEN-Position und lade sie in ein neues, sauberes Spielobjekt.
+        const puzzleStartFen = tempGame.fen();
+        this.game.load(puzzleStartFen);
+
         this.puzzle = data;
         this.currentMove = 0;
+
         const orientation = this.game.turn() === 'w' ? 'white' : 'black';
         const config = {
             draggable: true,
@@ -67,7 +88,10 @@ export class ChessPuzzleManager {
                 this.checkSolution(move);
             }
         };
+
+        if (this.board) this.board.destroy();
         this.board = Chessboard('puzzleBoard', config);
+
         this.statusElement.text(`${orientation === 'white' ? 'Weiß' : 'Schwarz'} am Zug.`);
         this.solutionBtn.show();
     }
@@ -75,12 +99,15 @@ export class ChessPuzzleManager {
     checkSolution(userMove) {
         const solution = this.puzzle.puzzle.solution;
         const expectedMove = solution[this.currentMove];
-        if (`${userMove.from}${userMove.to}` === expectedMove) {
+        const moveUci = `${userMove.from}${userMove.to}`;
+
+        if (moveUci === expectedMove) {
             this.statusElement.text('Korrekt!');
             this.currentMove++;
             setTimeout(() => {
                 if (this.currentMove < solution.length) {
-                    this.game.move(solution[this.currentMove], { sloppy: true });
+                    const computerMove = solution[this.currentMove];
+                    this.game.move(computerMove, { sloppy: true });
                     this.board.position(this.game.fen());
                     this.currentMove++;
                     this.statusElement.text('Dein Zug.');
@@ -99,7 +126,12 @@ export class ChessPuzzleManager {
     }
 
     showSolution() {
-        let moveIndex = this.currentMove;
+        // Lädt die Startposition sauber, bevor die Lösung angezeigt wird.
+        this.game.load(this.puzzleStartFen || this.game.fen());
+        this.board.position(this.game.fen());
+        this.currentMove = 0;
+
+        let moveIndex = 0;
         const playNextMove = () => {
             if (moveIndex < this.puzzle.puzzle.solution.length) {
                 this.game.move(this.puzzle.puzzle.solution[moveIndex], { sloppy: true });
